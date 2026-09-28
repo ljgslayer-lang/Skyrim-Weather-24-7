@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Skyrim Weather</title>
+
+<style>
+body {
+    margin: 0;
+    background: #111820;
+    color: white;
+    font-family: Arial;
+    text-align: center;
+}
+
+header {
+    padding: 25px;
+    background: #202d38;
+    border-bottom: 2px solid #777;
+}
+
+h1 {
+    font-size: 40px;
+    margin: 0;
+}
+
+.live {
+    color: #55ff55;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.main {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    padding: 30px;
+    flex-wrap: wrap;
+}
+
+.map {
+    width: 600px;
+    height: 450px;
+    background: #344b3b;
+    border: 3px solid #aaa;
+    border-radius: 12px;
+    position: relative;
+}
+
+.map h2 {
+    margin-top: 20px;
+}
+
+.city {
+    position: absolute;
+    padding: 10px 15px;
+    background: #222;
+    color: white;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.city:hover {
+    background: #555;
+}
+
+.whiterun { left: 250px; top: 190px; }
+.solitude { left: 70px; top: 80px; }
+.windhelm { right: 60px; top: 100px; }
+.riften { right: 80px; bottom: 70px; }
+.markarth { left: 60px; bottom: 90px; }
+
+.weather {
+    width: 280px;
+    background: #202d38;
+    border: 2px solid #777;
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.temperature {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+#clock {
+    margin-top: 10px;
+    font-size: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>⚔️ SKYRIM WEATHER</h1>
+
+<div class="live">● LIVE • 24/7</div>
+
+<div id="clock"></div>
+
+</header>
+
+<div class="main">
+
+<div class="map">
+
+<h2>SKYRIM MAP</h2>
+
+<button class="city whiterun"
+onclick="weather('Whiterun','Clear','54°F')">
+Whiterun
+</button>
+
+<button class="city solitude"
+onclick="weather('Solitude','Rain','47°F')">
+Solitude
+</button>
+
+<button class="city windhelm"
+onclick="weather('Windhelm','Snow','31°F')">
+Windhelm
+</button>
+
+<button class="city riften"
+onclick="weather('Riften','Fog','45°F')">
+Riften
+</button>
+
+<button class="city markarth"
+onclick="weather('Markarth','Cloudy','39°F')">
+Markarth
+</button>
+
+</div>
+
+<div class="weather">
+
+<h2 id="location">Whiterun</h2>
+
+<div class="temperature" id="temperature">
+54°F
+</div>
+
+<h2 id="condition">Clear</h2>
+
+<p>Wind: 6 mph</p>
+
+<p>Visibility: Good</p>
+
+</div>
+
+</div>
+
+<script>
+
+function weather(location, condition, temperature) {
+
+document.getElementById("location").textContent = location;
+
+document.getElementById("condition").textContent = condition;
+
+document.getElementById("temperature").textContent = temperature;
+
+}
+
+function updateClock() {
+
+let now = new Date();
+
+document.getElementById("clock").textContent =
+now.toLocaleTimeString();
+
+}
+
+setInterval(updateClock, 1000);
+
+updateClock();
+
+</script>
+
+</body>
+</html>
