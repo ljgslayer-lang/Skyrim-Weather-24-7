@@ -1,93 +1,9 @@
 <!DOCTYPE html>
-<html>
-<head>
-<title>Skyrim Weather 24/7</title>
 
-<style>
-body {
-    margin: 0;
-    background: #111820;
-    color: white;
-    font-family: Arial;
-    text-align: center;
-}
+<html> <head> <title>Skyrim Weather 24/7</title>
 
-header {
-    padding: 25px;
-    background: #202d38;
-    border-bottom: 2px solid #777;
-}
+<style> * { box-sizing: border-box; } body { margin: 0; background: #0b1015; color: #eee; font-family: Arial, sans-serif; } header { background: linear-gradient(#263744, #151e26); padding: 22px; text-align: center; border-bottom: 3px solid #777; } h1 { margin: 0; font-size: 42px; letter-spacing: 2px; } .live { color: #5cff65; font-weight: bold; margin-top: 8px; } #clock { margin-top: 8px; color: #bbb; } .main { display: flex; justify-content: center; gap: 25px; padding: 30px; flex-wrap: wrap; } /* MAP */ .map { width: 700px; height: 500px; position: relative; overflow: hidden; border: 3px solid #999; border-radius: 14px; background: radial-gradient(circle at 30% 30%, #66765c, transparent 30%), radial-gradient(circle at 70% 60%, #455847, transparent 35%), linear-gradient(135deg, #3d503f, #1e3028); box-shadow: 0 0 25px #000; } .map::before { content: "SKYRIM"; position: absolute; top: 20px; left: 0; right: 0; text-align: center; font-size: 38px; font-weight: bold; color: rgba(255,255,255,0.18); letter-spacing: 8px; } .city { position: absolute; padding: 9px 13px; background: #161b1e; color: white; border: 1px solid #aaa; border-radius: 7px; cursor: pointer; font-weight: bold; transition: 0.2s; } .city:hover { background: #59655c; transform: scale(1.08); } .whiterun { left: 300px; top: 220px; } .solitude { left: 80px; top: 90px; } .morthal { left: 230px; top: 110px; } .dawnstar { left: 280px; top: 45px; } .windhelm { right: 65px; top: 120px; } .riften { right: 90px; bottom: 70px; } .falkreath { left: 260px; bottom: 70px; } .markarth { left: 65px; bottom: 105px; } .winterhold { right: 180px; top: 35px; } /* WEATHER PANEL */ .weather { width: 300px; min-height: 350px; background: linear-gradient(#202d38, #111920); border: 2px solid #777; border-radius: 14px; padding: 28px; text-align: center; box-shadow: 0 0 20px #000; } .weather h2 { margin-top: 5px; } .temperature { font-size: 58px; font-weight: bold; margin: 25px 0 10px; } .condition { font-size: 25px; color: #ddd; } .info { margin-top: 25px; padding-top: 15px; border-top: 1px solid #555; color: #bbb; } /* NEWS */ .news { position: fixed; bottom: 0; left: 0; width: 100%; height: 48px; background: #080b0d; border-top: 2px solid #777; display: flex; align-items: center; overflow: hidden; } .news-title { background: #7d1717; padding: 15px 20px; font-weight: bold; z-index: 2; } .news-track { white-space: nowrap; animation: scroll 25s linear infinite; padding-left: 100%; font-weight: bold; } .news-track span { margin-right: 80px; } @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-100%); } } @media (max-width: 750px) { .map { width: 95vw; height: 450px; } .weather { width: 90vw; } } </style>
 
-h1 {
-    font-size: 40px;
-    margin: 0;
-}
-
-.live {
-    color: #55ff55;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.main {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    padding: 30px;
-    flex-wrap: wrap;
-}
-
-.map {
-    width: 600px;
-    height: 450px;
-    background: #344b3b;
-    border: 3px solid #aaa;
-    border-radius: 12px;
-    position: relative;
-}
-
-.map h2 {
-    margin-top: 20px;
-}
-
-.city {
-    position: absolute;
-    padding: 10px 15px;
-    background: #222;
-    color: white;
-    border: 1px solid #aaa;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.city:hover {
-    background: #555;
-}
-
-.whiterun { left: 250px; top: 190px; }
-.solitude { left: 70px; top: 80px; }
-.windhelm { right: 60px; top: 100px; }
-.riften { right: 80px; bottom: 70px; }
-.markarth { left: 60px; bottom: 90px; }
-
-.weather {
-    width: 280px;
-    background: #202d38;
-    border: 2px solid #777;
-    border-radius: 12px;
-    padding: 25px;
-}
-
-.temperature {
-    font-size: 50px;
-    font-weight: bold;
-}
-
-#clock {
-    margin-top: 10px;
-    font-size: 20px;
-}
-</style>
 </head>
 
 <body>
@@ -96,7 +12,7 @@ h1 {
 
 <h1>⚔️ SKYRIM WEATHER</h1>
 
-<div class="live">● LIVE • 24/7</div>
+<div class="live">● LIVE • 24/7 • SKYRIM PROVINCE</div>
 
 <div id="clock"></div>
 
@@ -106,30 +22,39 @@ h1 {
 
 <div class="map">
 
-<h2>SKYRIM MAP</h2>
-
-<button class="city whiterun"
-onclick="weather('Whiterun','Clear','54°F')">
+<button class="city whiterun" onclick="weather('Whiterun','Clear','54°F','6 mph')">
 Whiterun
 </button>
 
-<button class="city solitude"
-onclick="weather('Solitude','Rain','47°F')">
+<button class="city solitude" onclick="weather('Solitude','Rain','47°F','12 mph')">
 Solitude
 </button>
 
-<button class="city windhelm"
-onclick="weather('Windhelm','Snow','31°F')">
+<button class="city morthal" onclick="weather('Morthal','Fog','41°F','4 mph')">
+Morthal
+</button>
+
+<button class="city dawnstar" onclick="weather('Dawnstar','Snow','28°F','18 mph')">
+Dawnstar
+</button>
+
+<button class="city windhelm" onclick="weather('Windhelm','Snow','31°F','15 mph')">
 Windhelm
 </button>
 
-<button class="city riften"
-onclick="weather('Riften','Fog','45°F')">
+<button class="city winterhold" onclick="weather('Winterhold','Blizzard','19°F','25 mph')">
+Winterhold
+</button>
+
+<button class="city riften" onclick="weather('Riften','Fog','45°F','5 mph')">
 Riften
 </button>
 
-<button class="city markarth"
-onclick="weather('Markarth','Cloudy','39°F')">
+<button class="city falkreath" onclick="weather('Falkreath','Cloudy','43°F','7 mph')">
+Falkreath
+</button>
+
+<button class="city markarth" onclick="weather('Markarth','Cloudy','39°F','9 mph')">
 Markarth
 </button>
 
@@ -139,46 +64,40 @@ Markarth
 
 <h2 id="location">Whiterun</h2>
 
-<div class="temperature" id="temperature">
-54°F
-</div>
+<div class="temperature" id="temperature"> 54°F </div>
 
-<h2 id="condition">Clear</h2>
+<div class="condition" id="condition"> Clear </div>
 
-<p>Wind: 6 mph</p>
-
-<p>Visibility: Good</p>
+<div class="info"> <p>💨 Wind: <span id="wind">6 mph</span></p> <p>👁 Visibility: Good</p> <p>🏰 Province: Skyrim</p> </div>
 
 </div>
 
 </div>
 
-<script>
+<div class="news">
 
-function weather(location, condition, temperature) {
+<div class="news-title"> ⚠ NEWS </div>
 
-document.getElementById("location").textContent = location;
+<div class="news-track">
 
-document.getElementById("condition").textContent = condition;
+<span>⚔️ FROST TROLL ATTACK REPORTED NEAR WINTERHOLD</span>
 
-document.getElementById("temperature").textContent = temperature;
+<span>🔥 CIVIL WAR FIGHTING CONTINUES ACROSS SKYRIM</span>
 
-}
+<span>🐉 DRAGON SIGHTING REPORTED NEAR WHITERUN</span>
 
-function updateClock() {
+<span>❄️ HEAVY SNOW EXPECTED IN THE PALE</span>
 
-let now = new Date();
+<span>🏰 IMPERIAL FORCES SPOTTED NEAR SOLITUDE</span>
 
-document.getElementById("clock").textContent =
-now.toLocaleTimeString();
+<span>🧙 MAGES AT THE COLLEGE OF WINTERHOLD ISSUE WEATHER WARNING</span>
 
-}
+<span>🐺 WOLVES REPORTED NEAR FALKREATH</span>
 
-setInterval(updateClock, 1000);
+</div>
 
-updateClock();
+</div>
 
-</script>
+<script> function weather(location, condition, temperature, wind) { document.getElementById("location").textContent = location; document.getElementById("condition").textContent = condition; document.getElementById("temperature").textContent = temperature; document.getElementById("wind").textContent = wind; } function updateClock() { let now = new Date(); document.getElementById("clock").textContent = "Tamriel Time: " + now.toLocaleTimeString(); } setInterval(updateClock, 1000); updateClock(); </script>
 
-</body>
-</html>
+</body> </html>
