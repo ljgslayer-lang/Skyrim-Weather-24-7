@@ -1,2841 +1,4729 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Skyrim Weather 24/7</title>
-
-    <style>
-
-        /* =========================================================
-           GLOBAL
-        ========================================================= */
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: Georgia, "Times New Roman", serif;
-            min-height: 100vh;
-            color: #f1e5c9;
-
-            background:
-                radial-gradient(
-                    circle at 20% 20%,
-                    rgba(255,255,255,.06),
-                    transparent 25%
-                ),
-                linear-gradient(
-                    135deg,
-                    #151b19,
-                    #26322d 45%,
-                    #101513
-                );
-
-            transition:
-                background 1s ease,
-                filter 1s ease;
-        }
-
-        body.night {
-            background:
-                radial-gradient(
-                    circle at 70% 12%,
-                    rgba(90,120,160,.12),
-                    transparent 25%
-                ),
-                linear-gradient(
-                    135deg,
-                    #070b10,
-                    #111a22 50%,
-                    #040608
-                );
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Skyrim Weather 24/7</title>
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #eadfca;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(170, 145, 90, .12),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #10171a,
+            #1b2425 45%,
+            #0b1012
+        );
+
+    transition:
+        background 1.5s ease,
+        color 1s ease;
+}
+
+body.night {
+    background:
+        radial-gradient(
+            circle at 70% 10%,
+            rgba(70, 100, 150, .12),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #05090d,
+            #0d151e 50%,
+            #030507
+        );
+}
+
+button {
+    font-family: inherit;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+    position: relative;
+    text-align: center;
+    padding: 30px 15px 24px;
+
+    background:
+        linear-gradient(
+            rgba(8, 11, 12, .9),
+            rgba(12, 16, 17, .82)
+        );
+
+    border-bottom:
+        2px solid #8c6e3c;
+
+    box-shadow:
+        0 8px 35px rgba(0,0,0,.5);
+}
+
+header::before,
+header::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 20%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #9b7c43
+    );
+}
+
+header::before {
+    left: 2%;
+}
+
+header::after {
+    right: 2%;
+    transform: rotate(180deg);
+}
+
+.header-kicker {
+    color: #a98b53;
+    font-size: .75rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+}
+
+header h1 {
+    margin-top: 8px;
+
+    font-size:
+        clamp(2rem, 7vw, 4.8rem);
+
+    letter-spacing: 6px;
+    color: #e6ce91;
+
+    text-shadow:
+        0 3px 0 #211b10,
+        3px 5px 10px #000;
+}
+
+.header-subtitle {
+    margin-top: 8px;
+    color: #aaa18f;
+    letter-spacing: 3px;
+    font-size: .9rem;
+}
+
+.live-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 15px;
+    padding: 7px 14px;
+
+    border:
+        1px solid #5e704f;
+
+    background:
+        rgba(38, 55, 37, .35);
+
+    color: #a9c38f;
+
+    font-size: .72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #91b873;
+    box-shadow: 0 0 10px #91b873;
+}
+
+#tamrielClock {
+    margin-top: 15px;
+    color: #d6bb79;
+    font-size: 1rem;
+}
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.container {
+    width: min(1450px, 94%);
+    margin: 24px auto 60px;
+}
+
+/* =========================================================
+   TOP DASHBOARD
+========================================================= */
+
+.dashboard {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.4fr)
+        minmax(280px, .6fr);
+
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.panel {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(24, 28, 28, .95),
+            rgba(9, 13, 14, .96)
+        );
+
+    border:
+        1px solid #665331;
+
+    box-shadow:
+        inset 0 0 35px rgba(0,0,0,.35),
+        0 8px 25px rgba(0,0,0,.35);
+}
+
+.panel-title {
+    padding: 11px 15px;
+
+    border-bottom:
+        1px solid #4c4029;
+
+    color: #cdb477;
+
+    font-size: .75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.calendar-panel {
+    padding: 18px;
+}
+
+.calendar-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+}
+
+.calendar-date {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    color: #e7d19a;
+}
+
+.calendar-season {
+    margin-top: 6px;
+    color: #999583;
+}
+
+.calendar-time {
+    text-align: right;
+}
+
+.calendar-time strong {
+    display: block;
+    font-size: 1.8rem;
+    color: #d9bc78;
+}
+
+.calendar-time span {
+    color: #888;
+    font-size: .75rem;
+}
+
+/* =========================================================
+   NEWS
+========================================================= */
+
+.news-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    min-height: 48px;
+
+    margin-bottom: 18px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(20,18,14,.96),
+            rgba(9,12,13,.96)
+        );
+
+    border:
+        1px solid #62502f;
+
+    overflow: hidden;
+}
+
+.news-label {
+    flex-shrink: 0;
+
+    padding: 15px;
+
+    background: #392e1d;
+    border-right: 1px solid #80663a;
+
+    color: #dfc37f;
+
+    font-size: .7rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+#newsText {
+    color: #c9c4b6;
+    font-size: .9rem;
+    white-space: nowrap;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =========================================================
+   EVENT ALERT
+========================================================= */
+
+.event-alert {
+    display: none;
+
+    margin-bottom: 18px;
+    padding: 15px 18px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(92,45,32,.75),
+            rgba(30,17,14,.95)
+        );
+
+    border:
+        1px solid #9a5b3f;
 
-        button {
-            font-family: Georgia, "Times New Roman", serif;
-        }
+    box-shadow:
+        0 0 20px rgba(130,50,30,.15);
+}
 
+.event-alert.visible {
+    display: block;
+}
 
-        /* =========================================================
-           HEADER
-        ========================================================= */
+.event-alert.dragon {
+    border-color: #a46a45;
 
-        header {
-            position: relative;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(106,50,30,.8),
+            rgba(20,13,11,.98)
+        );
 
-            text-align: center;
+    animation: dragonPulse 2s ease-in-out infinite;
+}
+
+@keyframes dragonPulse {
 
-            padding:
-                32px
-                15px
-                25px;
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(160,70,40,.1);
+    }
+
+    50% {
+        box-shadow: 0 0 28px rgba(160,70,40,.35);
+    }
+
+}
+
+.event-title {
+    color: #e0a478;
+    font-size: .72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#eventText {
+    margin-top: 6px;
+    color: #e2d8c5;
+}
+
+/* =========================================================
+   MAP
+========================================================= */
+
+.map-wrapper {
+    position: relative;
+
+    border:
+        2px solid #80683f;
+
+    background: #b8a276;
+
+    box-shadow:
+        0 12px 40px rgba(0,0,0,.55);
+
+    overflow: hidden;
+}
+
+.map-header {
+    position: absolute;
+    z-index: 20;
+
+    top: 15px;
+    left: 18px;
+
+    pointer-events: none;
+}
+
+.map-header h2 {
+    color: #302a1d;
+
+    font-size:
+        clamp(1.3rem, 3vw, 2.1rem);
+
+    text-shadow:
+        0 1px rgba(255,255,255,.4);
+
+    letter-spacing: 2px;
+}
+
+.map-header p {
+    margin-top: 3px;
+
+    color: #554a34;
+
+    font-size: .7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#skyrimMap {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    min-height: 650px;
+}
+
+/* =========================================================
+   SVG MAP STYLING
+========================================================= */
+
+.map-sea {
+    fill: #778f91;
+}
+
+.map-land {
+    fill: #c2ad7d;
+}
+
+.map-land-shadow {
+    fill: #aa9568;
+    opacity: .38;
+}
+
+.map-border {
+    fill: none;
+    stroke: #574a32;
+    stroke-width: 2;
+    stroke-dasharray: 9 7;
+    opacity: .7;
+}
+
+.map-river {
+    fill: none;
+    stroke: #617f86;
+    stroke-width: 4;
+    opacity: .85;
+}
+
+.map-road {
+    fill: none;
+    stroke: #745e3d;
+    stroke-width: 2;
+    stroke-dasharray: 7 6;
+    opacity: .75;
+}
+
+.map-mountain {
+    fill: #665c4b;
+    opacity: .55;
+}
+
+.map-mountain-light {
+    fill: #ddd0a9;
+    opacity: .65;
+}
+
+.map-forest {
+    fill: #687254;
+    opacity: .55;
+}
+
+.map-label {
+    fill: #51452e;
 
-            border-bottom:
-                3px solid #80663a;
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-            background:
-                linear-gradient(
-                    rgba(15,18,17,.96),
-                    rgba(8,11,10,.92)
-                );
+    font-weight: bold;
+    letter-spacing: 2px;
+
+    text-anchor: middle;
+}
+
+.region-label {
+    fill: #766544;
+    opacity: .75;
 
-            box-shadow:
-                0 8px 30px rgba(0,0,0,.55);
-        }
+    font-family: Georgia, serif;
 
-        header::before,
-        header::after {
-            content: "";
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 3px;
 
-            position: absolute;
+    text-anchor: middle;
+}
 
-            top: 12px;
-            bottom: 12px;
+/* =========================================================
+   CITY MARKERS
+========================================================= */
 
-            width: 3px;
+.city-marker {
+    cursor: pointer;
+}
 
-            background:
-                linear-gradient(
-                    transparent,
-                    #8f7444,
-                    transparent
-                );
-        }
+.city-marker circle {
+    fill: #30291e;
+    stroke: #dfc783;
+    stroke-width: 2.5;
 
-        header::before {
-            left: 8%;
-        }
+    transition:
+        transform .2s,
+        fill .2s,
+        stroke .2s;
+}
 
-        header::after {
-            right: 8%;
-        }
+.city-marker:hover circle {
+    fill: #806637;
+    stroke: #f0d99c;
+}
 
-        header h1 {
-            font-size:
-                clamp(2rem, 6vw, 4.2rem);
+.city-marker.active circle {
+    fill: #a47b39;
+    stroke: #fff0bb;
+    stroke-width: 3;
 
-            letter-spacing: 5px;
+    filter:
+        drop-shadow(0 0 8px rgba(240,210,130,.7));
+}
 
-            color: #e6cc91;
+.city-marker text {
+    fill: #f0dfb0;
 
-            text-shadow:
-                3px 3px 0 #000,
-                0 0 18px rgba(202,160,72,.18);
-        }
+    font-family: Georgia, serif;
 
-        header p {
-            margin-top: 8px;
+    font-size: 11px;
+    font-weight: bold;
 
-            color: #a99b7b;
+    text-anchor: middle;
+    pointer-events: none;
+}
 
-            letter-spacing: 3px;
+.crest {
+    fill: #dbc17c;
+    pointer-events: none;
+}
 
-            font-size: .9rem;
-        }
+.city-name {
+    fill: #332c20;
 
-        .live {
-            margin-top: 13px;
+    font-family: Georgia, serif;
 
-            color: #9ac27e;
+    font-size: 14px;
+    font-weight: bold;
 
-            font-size: .82rem;
+    text-anchor: middle;
 
-            letter-spacing: 2px;
-        }
+    pointer-events: none;
+}
 
-        .clock {
-            margin-top: 12px;
+/* =========================================================
+   MAP CONTROLS
+========================================================= */
 
-            color: #d2b873;
+.map-controls {
+    position: absolute;
 
-            font-size: 1rem;
+    right: 15px;
+    top: 15px;
 
-            letter-spacing: 1px;
-        }
+    z-index: 30;
 
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
 
-        /* =========================================================
-           MAIN CONTAINER
-        ========================================================= */
+.map-control {
+    width: 38px;
+    height: 38px;
 
-        .container {
-            width: min(1250px, 94%);
+    border:
+        1px solid #665333;
 
-            margin:
-                25px
-                auto
-                40px;
-        }
+    background:
+        rgba(41,35,25,.9);
 
+    color: #dfc988;
 
-        /* =========================================================
-           NEWS BAR
-        ========================================================= */
+    cursor: pointer;
 
-        .news {
-            display: flex;
+    font-size: 1rem;
+}
 
-            align-items: center;
+.map-control:hover {
+    background: #6b5836;
+}
 
-            gap: 10px;
+/* =========================================================
+   COMPASS
+========================================================= */
 
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(12,15,14,.96),
-                    rgba(28,29,24,.92),
-                    rgba(12,15,14,.96)
-                );
+.compass {
+    position: absolute;
 
-            border:
-                1px solid #6d5935;
+    right: 22px;
+    bottom: 20px;
 
-            border-left:
-                4px solid #a98343;
+    z-index: 20;
 
-            padding:
-                13px
-                16px;
+    width: 75px;
+    height: 75px;
 
-            margin-bottom: 22px;
+    border:
+        2px solid #57462d;
 
-            box-shadow:
-                0 5px 18px rgba(0,0,0,.35);
-        }
+    border-radius: 50%;
 
-        .news strong {
-            color: #d8b765;
+    background:
+        rgba(203,186,139,.7);
 
-            letter-spacing: 1px;
+    color: #493c28;
 
-            white-space: nowrap;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        #newsText {
-            color: #d5d0c4;
+    font-weight: bold;
+}
 
-            line-height: 1.4;
-        }
+.compass::before {
+    content: "N";
 
+    position: absolute;
+    top: 5px;
+}
 
-        /* =========================================================
-           MAP
-        ========================================================= */
+.compass::after {
+    content: "S";
 
-        .map-wrapper {
-            position: relative;
-        }
+    position: absolute;
+    bottom: 5px;
+}
 
-        .map {
-            position: relative;
+.compass-line {
+    width: 2px;
+    height: 55px;
+    background: #59472d;
+}
 
-            min-height: 650px;
+/* =========================================================
+   LEGEND
+========================================================= */
 
-            overflow: hidden;
+.map-legend {
+    position: absolute;
 
-            border:
-                3px solid #8b7040;
+    left: 15px;
+    bottom: 15px;
 
-            background:
-                radial-gradient(
-                    ellipse at 35% 45%,
-                    rgba(104,119,83,.65),
-                    transparent 32%
-                ),
-                radial-gradient(
-                    ellipse at 72% 60%,
-                    rgba(79,103,73,.65),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    ellipse at 50% 15%,
-                    rgba(119,129,94,.35),
-                    transparent 25%
-                ),
-                linear-gradient(
-                    135deg,
-                    #4d5543,
-                    #72765b 45%,
-                    #414a3c
-                );
+    z-index: 20;
 
-            box-shadow:
-                inset 0 0 100px rgba(0,0,0,.55),
-                0 12px 35px rgba(0,0,0,.5);
-        }
+    padding: 10px 12px;
 
-        .map::before {
-            content: "";
+    background:
+        rgba(202,184,137,.88);
 
-            position: absolute;
+    border:
+        1px solid #695637;
 
-            inset: 0;
+    color: #453923;
 
-            pointer-events: none;
+    font-size: .7rem;
+}
 
-            opacity: .18;
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
 
-            background-image:
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 7px,
-                    rgba(255,255,255,.04) 8px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    transparent,
-                    transparent 9px,
-                    rgba(0,0,0,.05) 10px
-                );
-        }
+    margin: 4px 0;
+}
 
-        body.night .map {
-            filter:
-                brightness(.62)
-                saturate(.75);
-        }
+.legend-dot {
+    width: 10px;
+    height: 10px;
 
-        .map-title {
-            position: absolute;
+    border-radius: 50%;
 
-            top: 18px;
-            left: 22px;
+    background: #30291e;
+    border: 1px solid #e1c67e;
+}
 
-            z-index: 20;
+/* =========================================================
+   WEATHER PANEL
+========================================================= */
 
-            color: #ead8a9;
+.weather-panel {
+    margin-top: 18px;
 
-            font-size: 1.55rem;
+    padding: 25px;
 
-            letter-spacing: 2px;
+    border:
+        1px solid #6c5835;
 
-            text-shadow:
-                2px 2px 4px #000;
-        }
+    background:
+        linear-gradient(
+            145deg,
+            rgba(24,28,28,.98),
+            rgba(9,12,13,.98)
+        );
 
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.4);
+}
 
-        /* =========================================================
-           MAP REGIONS
-        ========================================================= */
+.weather-top {
+    display: flex;
 
-        .region {
-            position: absolute;
+    justify-content: space-between;
+    align-items: flex-start;
 
-            border:
-                1px dashed rgba(215,196,143,.28);
+    gap: 20px;
+}
 
-            background:
-                rgba(255,255,255,.025);
+.location-kicker {
+    color: #947a49;
 
-            pointer-events: none;
-        }
+    font-size: .7rem;
+    letter-spacing: 3px;
 
-        .region.whiterun {
-            left: 29%;
-            top: 30%;
+    text-transform: uppercase;
+}
 
-            width: 40%;
-            height: 34%;
-        }
+.location-name {
+    margin-top: 5px;
 
-        .region.haafingar {
-            left: 5%;
-            top: 8%;
+    color: #e4cd91;
 
-            width: 22%;
-            height: 30%;
-        }
+    font-size:
+        clamp(2rem, 6vw, 3.5rem);
 
-        .region.hjaalmarch {
-            left: 27%;
-            top: 8%;
+    text-shadow:
+        2px 3px 5px #000;
+}
 
-            width: 22%;
-            height: 25%;
-        }
+.hold-name {
+    margin-top: 3px;
+    color: #938d80;
+}
 
-        .region.pale {
-            left: 45%;
-            top: 3%;
+.crest-display {
+    width: 90px;
+    height: 90px;
 
-            width: 22%;
-            height: 25%;
-        }
+    border:
+        1px solid #765d35;
 
-        .region.winterhold {
-            right: 3%;
-            top: 3%;
+    background:
+        rgba(38,32,22,.8);
 
-            width: 21%;
-            height: 24%;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        .region.eastmarch {
-            right: 4%;
-            top: 23%;
+    color: #d7bb76;
 
-            width: 26%;
-            height: 32%;
-        }
+    font-size: 2.5rem;
+}
 
-        .region.rift {
-            right: 5%;
-            bottom: 5%;
+.weather-main {
+    display: flex;
 
-            width: 25%;
-            height: 31%;
-        }
+    align-items: center;
 
-        .region.falkreath {
-            left: 17%;
-            bottom: 5%;
+    gap: 25px;
 
-            width: 25%;
-            height: 29%;
-        }
+    margin-top: 25px;
+}
 
-        .region.reach {
-            left: 3%;
-            bottom: 22%;
+.weather-symbol {
+    width: 100px;
+    height: 100px;
 
-            width: 23%;
-            height: 28%;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    border:
+        1px solid #675333;
 
-        /* =========================================================
-           REGION LABELS
-        ========================================================= */
+    background:
+        radial-gradient(
+            circle,
+            rgba(186,156,86,.12),
+            transparent 65%
+        );
 
-        .region-label {
-            position: absolute;
+    color: #d8bd78;
 
-            color: rgba(239,220,174,.42);
+    font-size: 3rem;
+}
 
-            font-size: .78rem;
+.temperature {
+    color: #eee0ba;
 
-            letter-spacing: 2px;
+    font-size:
+        clamp(3rem, 8vw, 5rem);
 
-            text-transform: uppercase;
+    font-weight: bold;
+}
 
-            pointer-events: none;
+.condition {
+    margin-top: 4px;
 
-            text-shadow:
-                1px 1px 2px #000;
-        }
+    color: #bdb5a2;
 
-        .label-whiterun {
-            left: 43%;
-            top: 43%;
-        }
+    font-size: 1.25rem;
+}
 
-        .label-haafingar {
-            left: 9%;
-            top: 25%;
-        }
+.weather-description {
+    margin-top: 7px;
 
-        .label-hjaalmarch {
-            left: 31%;
-            top: 17%;
-        }
+    color: #8d897e;
 
-        .label-pale {
-            left: 51%;
-            top: 11%;
-        }
+    font-size: .85rem;
+}
 
-        .label-winterhold {
-            right: 7%;
-            top: 12%;
-        }
+/* =========================================================
+   STATS
+========================================================= */
 
-        .label-eastmarch {
-            right: 11%;
-            top: 37%;
-        }
+.stats-grid {
+    display: grid;
 
-        .label-rift {
-            right: 10%;
-            bottom: 14%;
-        }
+    grid-template-columns:
+        repeat(6, 1fr);
 
-        .label-falkreath {
-            left: 22%;
-            bottom: 13%;
-        }
+    gap: 10px;
 
-        .label-reach {
-            left: 8%;
-            bottom: 34%;
-        }
+    margin-top: 25px;
+}
 
+.stat {
+    min-height: 90px;
 
-        /* =========================================================
-           RIVERS
-        ========================================================= */
+    padding: 13px;
 
-        .river {
-            position: absolute;
+    background:
+        rgba(255,255,255,.025);
 
-            height: 7px;
+    border:
+        1px solid #403d34;
+}
 
-            border-radius: 50%;
+.stat-label {
+    color: #77766e;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(112,157,164,.72),
-                    rgba(159,190,191,.65),
-                    transparent
-                );
+    font-size: .67rem;
 
-            opacity: .7;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
 
-            filter:
-                drop-shadow(
-                    0 0 3px rgba(100,150,170,.3)
-                );
+.stat-value {
+    margin-top: 8px;
 
-            pointer-events: none;
-        }
+    color: #d7c697;
 
-        .river-one {
-            width: 58%;
+    font-size: 1.05rem;
+}
 
-            left: 18%;
-            top: 55%;
+/* =========================================================
+   HOLD STATUS
+========================================================= */
 
-            transform:
-                rotate(-17deg);
-        }
+.status-section {
+    margin-top: 22px;
 
-        .river-two {
-            width: 48%;
+    padding-top: 20px;
 
-            right: 4%;
-            top: 49%;
+    border-top:
+        1px solid #403a2e;
+}
 
-            transform:
-                rotate(48deg);
-        }
+.status-title {
+    color: #bca36d;
 
-        .river-three {
-            width: 35%;
+    font-size: .75rem;
+    letter-spacing: 2px;
 
-            left: 3%;
-            top: 38%;
+    text-transform: uppercase;
+}
 
-            transform:
-                rotate(65deg);
-        }
+.status-grid {
+    display: grid;
 
+    grid-template-columns:
+        repeat(4, 1fr);
 
-        /* =========================================================
-           LAKES
-        ========================================================= */
+    gap: 12px;
 
-        .lake {
-            position: absolute;
+    margin-top: 12px;
+}
 
-            background:
-                radial-gradient(
-                    ellipse,
-                    rgba(86,130,139,.75),
-                    rgba(57,93,98,.72)
-                );
+.status-card {
+    padding: 14px;
 
-            border:
-                2px solid rgba(180,195,179,.25);
+    background:
+        rgba(255,255,255,.025);
 
-            opacity: .75;
+    border:
+        1px solid #3f3b31;
+}
 
-            pointer-events: none;
-        }
+.status-card span {
+    display: block;
 
-        .lake-one {
-            width: 18%;
-            height: 12%;
+    color: #77756c;
 
-            left: 39%;
-            top: 22%;
+    font-size: .65rem;
 
-            border-radius: 50%;
-        }
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
-        .lake-two {
-            width: 11%;
-            height: 8%;
+.status-card strong {
+    display: block;
 
-            left: 35%;
-            top: 64%;
+    margin-top: 7px;
 
-            border-radius: 50%;
-        }
+    color: #d5c28f;
+}
 
+/* =========================================================
+   INFORMATION GRID
+========================================================= */
 
-        /* =========================================================
-           MOUNTAINS
-        ========================================================= */
+.info-grid {
+    display: grid;
 
-        .mountain-range {
-            position: absolute;
+    grid-template-columns:
+        repeat(3, 1fr);
 
-            display: flex;
+    gap: 14px;
 
-            align-items: flex-end;
+    margin-top: 18px;
+}
 
-            gap: 2px;
+.info-box {
+    min-height: 150px;
 
-            opacity: .68;
+    padding: 18px;
 
-            pointer-events: none;
-        }
+    background:
+        rgba(255,255,255,.025);
 
-        .mountain-range span {
-            display: block;
+    border:
+        1px solid #403d34;
 
-            width: 0;
-            height: 0;
+    border-top:
+        2px solid #705b36;
+}
 
-            border-left:
-                32px solid transparent;
+.info-box h3 {
+    color: #c8ac70;
 
-            border-right:
-                32px solid transparent;
+    font-size: .78rem;
 
-            border-bottom:
-                80px solid #303831;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
 
-            filter:
-                drop-shadow(
-                    2px 3px 2px rgba(0,0,0,.4)
-                );
-        }
+.info-box p {
+    margin-top: 12px;
 
-        .mountain-range span:nth-child(2) {
-            border-bottom-color: #41493f;
-            border-bottom-width: 110px;
-        }
+    color: #b6b2a8;
 
-        .mountain-range span:nth-child(3) {
-            border-bottom-color: #29302c;
-            border-bottom-width: 95px;
-        }
+    line-height: 1.6;
 
-        .mountain-range span:nth-child(4) {
-            border-bottom-color: #555a4d;
-            border-bottom-width: 70px;
-        }
+    font-size: .9rem;
+}
 
-        .mountain-range span:nth-child(5) {
-            border-bottom-color: #323933;
-            border-bottom-width: 120px;
-        }
+/* =========================================================
+   AUDIO
+========================================================= */
 
-        .mountains-west {
-            left: 2%;
-            top: 38%;
+.audio-panel {
+    margin-top: 18px;
 
-            transform:
-                rotate(-4deg)
-                scale(.9);
-        }
+    padding: 18px 20px;
 
-        .mountains-north {
-            left: 35%;
-            top: 2%;
+    border:
+        1px solid #5e4c30;
 
-            transform:
-                rotate(2deg)
-                scale(.7);
-        }
+    background:
+        linear-gradient(
+            90deg,
+            rgba(27,26,21,.96),
+            rgba(10,13,14,.96)
+        );
+}
 
-        .mountains-east {
-            right: 0%;
-            top: 29%;
+.audio-header {
+    display: flex;
 
-            transform:
-                rotate(-7deg)
-                scale(.9);
-        }
+    justify-content: space-between;
+    align-items: center;
 
-        .mountains-south {
-            left: 37%;
-            bottom: 0%;
+    gap: 15px;
 
-            transform:
-                rotate(3deg)
-                scale(.75);
-        }
+    flex-wrap: wrap;
+}
 
+.audio-title {
+    color: #d2b876;
 
-        /* =========================================================
-           ROADS
-        ========================================================= */
+    font-size: .78rem;
 
-        .road {
-            position: absolute;
+    letter-spacing: 2px;
 
-            height: 3px;
+    text-transform: uppercase;
+}
 
-            background:
-                repeating-linear-gradient(
-                    90deg,
-                    rgba(104,82,51,.75) 0 9px,
-                    transparent 9px 15px
-                );
+.audio-controls {
+    display: flex;
 
-            opacity: .65;
+    align-items: center;
 
-            pointer-events: none;
-        }
+    gap: 10px;
 
-        .road-one {
-            width: 63%;
+    flex-wrap: wrap;
+}
 
-            left: 19%;
-            top: 49%;
+.audio-button {
+    padding: 8px 13px;
 
-            transform:
-                rotate(-10deg);
-        }
+    border:
+        1px solid #695636;
 
-        .road-two {
-            width: 43%;
+    background:
+        #28251d;
 
-            left: 36%;
-            top: 53%;
+    color: #d8c38a;
 
-            transform:
-                rotate(34deg);
-        }
+    cursor: pointer;
+}
 
-        .road-three {
-            width: 35%;
+.audio-button:hover {
+    background: #51442d;
+}
 
-            left: 17%;
-            top: 59%;
+.audio-select {
+    padding: 8px;
 
-            transform:
-                rotate(28deg);
-        }
+    border:
+        1px solid #695636;
 
-        .road-four {
-            width: 38%;
+    background:
+        #1b1a16;
 
-            right: 8%;
-            top: 52%;
+    color: #d8c38a;
+}
 
-            transform:
-                rotate(73deg);
-        }
+.volume {
+    width: 100px;
+}
 
+/* =========================================================
+   EVENT HISTORY
+========================================================= */
 
-        /* =========================================================
-           CITY BUTTONS
-        ========================================================= */
+.history-panel {
+    margin-top: 18px;
 
-        .city {
-            position: absolute;
+    padding: 18px;
 
-            z-index: 30;
+    border:
+        1px solid #4e4635;
 
-            transform:
-                translate(-50%, -50%);
+    background:
+        rgba(9,12,13,.92);
+}
 
-            border:
-                1px solid #d4b66d;
+.history-list {
+    margin-top: 10px;
 
-            background:
-                rgba(16,19,17,.94);
+    display: flex;
+    flex-direction: column;
 
-            color: #f1dfb1;
+    gap: 7px;
+}
 
-            padding:
-                8px
-                12px;
+.history-item {
+    padding: 9px 11px;
 
-            border-radius: 4px;
+    border-left:
+        2px solid #725d38;
 
-            cursor: pointer;
+    background:
+        rgba(255,255,255,.025);
 
-            font-weight: bold;
+    color: #aaa69c;
 
-            letter-spacing: .4px;
+    font-size: .82rem;
+}
 
-            box-shadow:
-                0 4px 12px rgba(0,0,0,.6);
+/* =========================================================
+   WEATHER PARTICLES
+========================================================= */
 
-            transition:
-                .2s ease;
-        }
+#weatherParticles {
+    position: fixed;
 
-        .city:hover {
-            background: #96743d;
+    inset: 0;
 
-            color: #fff;
+    pointer-events: none;
 
-            transform:
-                translate(-50%, -50%)
-                scale(1.08);
-        }
+    z-index: 1000;
 
-        .city.active {
-            background:
-                linear-gradient(
-                    #c49d55,
-                    #8d6934
-                );
+    overflow: hidden;
+}
 
-            color: #fff;
+.particle {
+    position: absolute;
 
-            box-shadow:
-                0 0 18px rgba(222,183,90,.75);
-        }
+    top: -15px;
 
+    width: 4px;
+    height: 4px;
 
-        /* CITY POSITIONS */
+    border-radius: 50%;
 
-        #Solitude {
-            left: 17%;
-            top: 20%;
-        }
+    background: rgba(255,255,255,.8);
 
-        #Morthal {
-            left: 33%;
-            top: 25%;
-        }
+    animation:
+        particleFall linear infinite;
+}
 
-        #Dawnstar {
-            left: 54%;
-            top: 10%;
-        }
+@keyframes particleFall {
 
-        #Winterhold {
-            left: 84%;
-            top: 11%;
-        }
+    from {
+        transform:
+            translate3d(0,-20px,0);
+    }
 
-        #Windhelm {
-            left: 82%;
-            top: 31%;
-        }
+    to {
+        transform:
+            translate3d(120px,110vh,0);
+    }
 
-        #Whiterun {
-            left: 48%;
-            top: 47%;
-        }
+}
 
-        #Markarth {
-            left: 10%;
-            top: 57%;
-        }
+/* =========================================================
+   FOOTER
+========================================================= */
 
-        #Falkreath {
-            left: 28%;
-            top: 78%;
-        }
+footer {
+    text-align: center;
 
-        #Riften {
-            left: 79%;
-            top: 75%;
-        }
+    padding: 35px 15px;
 
+    color: #69675f;
 
-        /* =========================================================
-           COMPASS
-        ========================================================= */
+    font-size: .75rem;
 
-        .compass {
-            position: absolute;
+    letter-spacing: 1px;
+}
 
-            right: 20px;
-            top: 18px;
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
-            z-index: 40;
+@media (max-width: 1000px) {
 
-            width: 75px;
-            height: 75px;
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
 
-            border:
-                2px solid #b29254;
+    .stats-grid {
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
 
-            border-radius: 50%;
+    .status-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
 
-            background:
-                rgba(12,15,13,.75);
+    .info-grid {
+        grid-template-columns:
+            1fr 1fr;
+    }
 
-            box-shadow:
-                0 3px 12px rgba(0,0,0,.5);
-        }
+}
 
-        .compass::before {
-            content: "";
+@media (max-width: 700px) {
 
-            position: absolute;
+    .container {
+        width: 96%;
+    }
 
-            left: 50%;
-            top: 8px;
+    header::before,
+    header::after {
+        display: none;
+    }
 
-            width: 2px;
-            height: 58px;
+    header h1 {
+        letter-spacing: 3px;
+    }
 
-            background: #c4a45d;
+    #skyrimMap {
+        min-height: 500px;
+    }
 
-            transform:
-                translateX(-50%);
-        }
+    .map-legend {
+        display: none;
+    }
 
-        .compass::after {
-            content: "";
+    .compass {
+        transform: scale(.75);
+        transform-origin: bottom right;
+    }
 
-            position: absolute;
+    .weather-panel {
+        padding: 18px;
+    }
 
-            top: 50%;
-            left: 8px;
+    .weather-top {
+        align-items: center;
+    }
 
-            width: 58px;
-            height: 2px;
+    .weather-main {
+        gap: 15px;
+    }
 
-            background: #c4a45d;
+    .weather-symbol {
+        width: 75px;
+        height: 75px;
+    }
 
-            transform:
-                translateY(-50%);
-        }
+    .stats-grid {
+        grid-template-columns:
+            1fr 1fr;
+    }
 
-        .compass span {
-            position: absolute;
+    .info-grid {
+        grid-template-columns:
+            1fr;
+    }
 
-            z-index: 2;
+}
 
-            color: #e7d29d;
+@media (max-width: 450px) {
 
-            font-weight: bold;
-        }
+    .calendar-main {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-        .north {
-            top: 2px;
-            left: 50%;
+    .calendar-time {
+        text-align: left;
+    }
 
-            transform:
-                translateX(-50%);
-        }
+    .weather-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-        .south {
-            bottom: 2px;
-            left: 50%;
+    .crest-display {
+        width: 70px;
+        height: 70px;
+    }
 
-            transform:
-                translateX(-50%);
-        }
+    .weather-main {
+        align-items: flex-start;
+    }
 
-        .east {
-            right: 4px;
-            top: 50%;
+    .stats-grid {
+        grid-template-columns:
+            1fr;
+    }
 
-            transform:
-                translateY(-50%);
-        }
+    .status-grid {
+        grid-template-columns:
+            1fr;
+    }
 
-        .west {
-            left: 4px;
-            top: 50%;
+}
 
-            transform:
-                translateY(-50%);
-        }
+/* =========================================================
+   PRINT
+========================================================= */
 
+@media print {
 
-        /* =========================================================
-           MAP LEGEND
-        ========================================================= */
+    body {
+        background: white;
+        color: black;
+    }
 
-        .map-legend {
-            position: absolute;
+    .audio-panel,
+    .map-controls,
+    #weatherParticles {
+        display: none;
+    }
 
-            bottom: 15px;
-            left: 15px;
+}
 
-            z-index: 40;
-
-            padding:
-                9px
-                12px;
-
-            background:
-                rgba(10,13,11,.78);
-
-            border:
-                1px solid #695536;
-
-            color: #c9b98e;
-
-            font-size: .75rem;
-        }
-
-
-        /* =========================================================
-           DRAGON ATTACK
-        ========================================================= */
-
-        .dragon-alert {
-            position: fixed;
-
-            left: 50%;
-            top: 22px;
-
-            z-index: 9999;
-
-            width: min(700px, 92%);
-
-            transform:
-                translate(-50%, -180%);
-
-            opacity: 0;
-
-            padding:
-                18px
-                22px;
-
-            text-align: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(37,19,12,.98),
-                    rgba(16,12,10,.98)
-                );
-
-            border:
-                2px solid #b47a37;
-
-            box-shadow:
-                0 10px 35px rgba(0,0,0,.75),
-                0 0 30px rgba(165,80,30,.22);
-
-            transition:
-                transform .5s ease,
-                opacity .5s ease;
-        }
-
-        .dragon-alert.show {
-            transform:
-                translate(-50%, 0);
-
-            opacity: 1;
-        }
-
-        .dragon-title {
-            color: #e0a55a;
-
-            font-size: 1.5rem;
-
-            letter-spacing: 3px;
-
-            font-weight: bold;
-        }
-
-        .dragon-text {
-            margin-top: 7px;
-
-            color: #e6d9c0;
-
-            line-height: 1.5;
-        }
-
-        .dragon-time {
-            margin-top: 7px;
-
-            color: #a99269;
-
-            font-size: .82rem;
-        }
-
-
-        /* =========================================================
-           WEATHER PANEL
-        ========================================================= */
-
-        .weather-panel {
-            margin-top: 25px;
-
-            background:
-                linear-gradient(
-                    rgba(9,12,11,.94),
-                    rgba(16,19,17,.91)
-                );
-
-            border:
-                2px solid #80683f;
-
-            padding:
-                28px;
-
-            box-shadow:
-                0 12px 35px rgba(0,0,0,.45);
-        }
-
-        .weather-header {
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            gap: 15px;
-
-            flex-wrap: wrap;
-
-            border-bottom:
-                1px solid #4b4333;
-
-            padding-bottom:
-                15px;
-        }
-
-        .location-name {
-            font-size:
-                clamp(2rem, 5vw, 3.2rem);
-
-            color: #e7ce91;
-
-            text-shadow:
-                2px 2px 3px #000;
-        }
-
-        .hold-name {
-            margin-top: 4px;
-
-            color: #8f846c;
-
-            letter-spacing: 2px;
-
-            text-transform: uppercase;
-
-            font-size: .8rem;
-        }
-
-        .weather-main {
-            display: flex;
-
-            align-items: center;
-
-            gap: 25px;
-
-            margin-top: 25px;
-
-            flex-wrap: wrap;
-        }
-
-        .weather-icon {
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            width: 95px;
-            height: 95px;
-
-            border:
-                1px solid #6f5c3d;
-
-            background:
-                rgba(255,255,255,.025);
-
-            color: #d8bc79;
-
-            font-size: 2.2rem;
-
-            font-weight: bold;
-        }
-
-        .temperature {
-            font-size:
-                clamp(3rem, 8vw, 5rem);
-
-            line-height: 1;
-
-            color: #eee1bf;
-        }
-
-        .condition {
-            margin-top: 8px;
-
-            color: #c7b890;
-
-            font-size: 1.25rem;
-        }
-
-
-        /* =========================================================
-           STATS
-        ========================================================= */
-
-        .stats {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
-            gap: 12px;
-
-            margin-top: 28px;
-        }
-
-        .stat {
-            background:
-                rgba(255,255,255,.035);
-
-            border:
-                1px solid #4d493d;
-
-            padding: 16px;
-
-            min-height: 85px;
-        }
-
-        .stat-label {
-            color: #8e8878;
-
-            font-size: .73rem;
-
-            text-transform: uppercase;
-
-            letter-spacing: 1.5px;
-        }
-
-        .stat-value {
-            margin-top: 8px;
-
-            color: #e4d5ac;
-
-            font-size: 1.2rem;
-
-            font-weight: bold;
-        }
-
-
-        /* =========================================================
-           INFO BOXES
-        ========================================================= */
-
-        .info-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
-
-            gap: 15px;
-
-            margin-top: 20px;
-        }
-
-        .info-box {
-            background:
-                rgba(255,255,255,.025);
-
-            border:
-                1px solid #454238;
-
-            border-left:
-                3px solid #a2834b;
-
-            padding: 18px;
-        }
-
-        .info-box h3 {
-            color: #d4b875;
-
-            margin-bottom: 9px;
-
-            letter-spacing: 1px;
-        }
-
-        .info-box p {
-            color: #c8c5bb;
-
-            line-height: 1.55;
-        }
-
-
-        /* =========================================================
-           WEATHER EFFECTS
-        ========================================================= */
-
-        .snow {
-            position: fixed;
-
-            top: -10px;
-
-            width: 6px;
-            height: 6px;
-
-            background: #fff;
-
-            border-radius: 50%;
-
-            opacity: .7;
-
-            pointer-events: none;
-
-            z-index: 9000;
-
-            animation:
-                fall linear infinite;
-        }
-
-        @keyframes fall {
-            from {
-                transform:
-                    translateY(-10px)
-                    translateX(0);
-            }
-
-            to {
-                transform:
-                    translateY(110vh)
-                    translateX(50px);
-            }
-        }
-
-
-        /* =========================================================
-           FOOTER
-        ========================================================= */
-
-        footer {
-            text-align: center;
-
-            padding:
-                30px
-                15px
-                40px;
-
-            color: #777064;
-
-            font-size: .82rem;
-
-            border-top:
-                1px solid #3b392f;
-        }
-
-
-        /* =========================================================
-           MOBILE
-        ========================================================= */
-
-        @media (max-width: 800px) {
-
-            .map {
-                min-height: 570px;
-            }
-
-            .stats {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-
-            .info-grid {
-                grid-template-columns:
-                    1fr;
-            }
-
-            .city {
-                padding:
-                    6px
-                    8px;
-
-                font-size: .72rem;
-            }
-
-            .compass {
-                transform: scale(.8);
-
-                transform-origin:
-                    top right;
-            }
-
-        }
-
-
-        @media (max-width: 520px) {
-
-            header {
-                padding:
-                    25px
-                    10px
-                    20px;
-            }
-
-            header::before,
-            header::after {
-                display: none;
-            }
-
-            .container {
-                width: 96%;
-            }
-
-            .map {
-                min-height: 500px;
-            }
-
-            .map-title {
-                font-size: 1rem;
-            }
-
-            .region-label {
-                font-size: .55rem;
-            }
-
-            .city {
-                font-size: .61rem;
-
-                padding:
-                    5px
-                    6px;
-            }
-
-            .stats {
-                grid-template-columns:
-                    1fr;
-            }
-
-            .weather-panel {
-                padding: 19px;
-            }
-
-            .weather-icon {
-                width: 75px;
-                height: 75px;
-            }
-
-            .news {
-                display: block;
-            }
-
-            .news strong {
-                display: block;
-
-                margin-bottom: 5px;
-            }
-
-        }
-
-    </style>
+</style>
 </head>
-
 
 <body>
 
+<!-- =======================================================
+     HEADER
+======================================================= -->
 
-    <!-- =========================================================
-         HEADER
-    ========================================================= -->
+<header>
 
-    <header>
+    <div class="header-kicker">
+        Imperial Provincial Weather Service
+    </div>
 
-        <h1>SKYRIM WEATHER</h1>
+    <h1>SKYRIM WEATHER</h1>
 
-        <p>PROVINCE WEATHER NETWORK</p>
+    <div class="header-subtitle">
+        THE PROVINCE • 24 / 7 WORLD MONITOR
+    </div>
 
-        <div class="live">
-            LIVE • 24/7 • SKYRIM PROVINCE
+    <div class="live-status">
+        <span class="live-dot"></span>
+        LIVE PROVINCE MONITOR
+    </div>
+
+    <div id="tamrielClock">
+        Loading Tamriel time...
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+<!-- =======================================================
+     DASHBOARD
+======================================================= -->
+
+<section class="dashboard">
+
+    <div class="panel">
+
+        <div class="panel-title">
+            Tamriel Calendar
         </div>
 
-        <div
-            class="clock"
-            id="clock">
-            Tamriel Time
-        </div>
+        <div class="calendar-panel">
 
-    </header>
+            <div class="calendar-main">
 
+                <div>
 
-    <!-- =========================================================
-         DRAGON ALERT
-    ========================================================= -->
+                    <div
+                        class="calendar-date"
+                        id="tamrielDate"
+                    >
+                        17th of Last Seed
+                    </div>
 
-    <div
-        class="dragon-alert"
-        id="dragonAlert">
+                    <div
+                        class="calendar-season"
+                        id="seasonText"
+                    >
+                        Late Summer
+                    </div>
 
-        <div class="dragon-title">
-            DRAGON ATTACK
-        </div>
+                </div>
 
-        <div
-            class="dragon-text"
-            id="dragonText">
-            A dragon has been spotted over Skyrim.
-        </div>
+                <div class="calendar-time">
 
-        <div
-            class="dragon-time"
-            id="dragonTime">
-            Hourly event
+                    <strong id="skyrimHour">
+                        12:00
+                    </strong>
+
+                    <span id="dayPeriod">
+                        Daytime
+                    </span>
+
+                </div>
+
+            </div>
+
         </div>
 
     </div>
 
 
-    <!-- =========================================================
-         MAIN
-    ========================================================= -->
+    <div class="panel">
 
-    <main class="container">
+        <div class="panel-title">
+            World Status
+        </div>
+
+        <div class="calendar-panel">
+
+            <div class="calendar-date">
+                Province Active
+            </div>
+
+            <div
+                class="calendar-season"
+                id="worldStatus"
+            >
+                Conditions monitored across Skyrim.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
 
-        <!-- NEWS -->
+<!-- =======================================================
+     NEWS
+======================================================= -->
 
-        <div class="news">
+<div class="news-bar">
 
-            <strong>
-                NEWS
-            </strong>
+    <div class="news-label">
+        PROVINCIAL REPORT
+    </div>
 
-            <span id="newsText">
-                Loading Skyrim news...
-            </span>
+    <div id="newsText">
+        Loading latest report...
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     EVENT ALERT
+======================================================= -->
+
+<div
+    id="eventAlert"
+    class="event-alert"
+>
+
+    <div
+        id="eventTitle"
+        class="event-title"
+    >
+        WORLD EVENT
+    </div>
+
+    <div id="eventText">
+        No major events reported.
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     MAP
+======================================================= -->
+
+<section class="map-wrapper">
+
+    <div class="map-header">
+
+        <h2>SKYRIM</h2>
+
+        <p>
+            Provincial Cartographic Survey
+        </p>
+
+    </div>
+
+
+    <div class="map-controls">
+
+        <button
+            class="map-control"
+            onclick="mapZoom(1.15)"
+            title="Zoom in"
+        >
+            +
+        </button>
+
+        <button
+            class="map-control"
+            onclick="mapZoom(.87)"
+            title="Zoom out"
+        >
+            −
+        </button>
+
+        <button
+            class="map-control"
+            onclick="resetMap()"
+            title="Reset map"
+        >
+            R
+        </button>
+
+    </div>
+
+
+    <!-- ===================================================
+         SVG MAP
+    =================================================== -->
+
+    <svg
+        id="skyrimMap"
+        viewBox="0 0 1200 760"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+
+        <defs>
+
+            <filter id="paperTexture">
+
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency=".8"
+                    numOctaves="3"
+                    seed="4"
+                />
+
+                <feColorMatrix
+                    type="saturate"
+                    values="0"
+                />
+
+                <feComponentTransfer>
+
+                    <feFuncA
+                        type="table"
+                        tableValues="0 .08"
+                    />
+
+                </feComponentTransfer>
+
+            </filter>
+
+
+            <filter id="mapShadow">
+
+                <feDropShadow
+                    dx="0"
+                    dy="4"
+                    stdDeviation="5"
+                    flood-color="#302619"
+                    flood-opacity=".4"
+                />
+
+            </filter>
+
+        </defs>
+
+
+        <!-- SEA -->
+
+        <rect
+            width="1200"
+            height="760"
+            class="map-sea"
+        />
+
+
+        <!-- MAIN LAND MASS -->
+
+        <path
+            class="map-land"
+            filter="url(#mapShadow)"
+            d="
+                M150 650
+                C110 590 130 500 180 440
+                C145 350 170 250 220 185
+                C280 105 380 90 475 115
+                C570 80 675 105 755 140
+                C850 95 955 125 1010 195
+                C1070 270 1050 365 1085 445
+                C1110 530 1060 625 970 665
+                C840 710 710 680 600 700
+                C460 735 260 730 150 650
+                Z
+            "
+        />
+
+
+        <!-- INNER SHADOW -->
+
+        <path
+            class="map-land-shadow"
+            d="
+                M200 620
+                C170 535 205 455 235 400
+                C200 310 250 220 330 175
+                C425 125 530 160 600 145
+                C700 120 810 175 870 205
+                C940 240 970 340 990 430
+                C1005 520 950 595 875 625
+                C760 665 640 635 545 665
+                C420 695 270 690 200 620
+                Z
+            "
+        />
+
+
+        <!-- HOLD BOUNDARIES -->
+
+        <path
+            class="map-border"
+            d="
+                M410 155
+                C390 230 405 300 445 350
+                C420 430 390 520 405 610
+            "
+        />
+
+        <path
+            class="map-border"
+            d="
+                M445 350
+                C550 335 645 350 730 400
+                C800 430 870 430 990 400
+            "
+        />
+
+        <path
+            class="map-border"
+            d="
+                M405 610
+                C510 590 580 590 665 635
+            "
+        />
+
+        <path
+            class="map-border"
+            d="
+                M730 400
+                C745 300 720 210 755 140
+            "
+        />
+
+
+        <!-- RIVERS -->
+
+        <path
+            class="map-river"
+            d="
+                M625 125
+                C620 210 600 275 615 350
+                C635 430 610 520 560 625
+            "
+        />
+
+        <path
+            class="map-river"
+            d="
+                M310 240
+                C390 270 420 310 445 350
+                C500 405 520 475 560 625
+            "
+        />
+
+        <path
+            class="map-river"
+            d="
+                M900 190
+                C850 245 820 305 800 370
+                C780 440 810 510 860 590
+            "
+        />
+
+
+        <!-- ROADS -->
+
+        <path
+            class="map-road"
+            d="
+                M260 510
+                C390 475 500 435 625 385
+                C720 350 825 330 955 270
+            "
+        />
+
+        <path
+            class="map-road"
+            d="
+                M625 385
+                C680 465 760 540 850 600
+            "
+        />
+
+        <path
+            class="map-road"
+            d="
+                M625 385
+                C560 470 510 550 445 625
+            "
+        />
+
+
+        <!-- MOUNTAIN RANGES -->
+
+        <g>
+
+            <path
+                class="map-mountain"
+                d="
+                    M200 300
+                    L230 220
+                    L255 265
+                    L290 175
+                    L325 250
+                    L360 190
+                    L400 290
+                    Z
+                "
+            />
+
+            <path
+                class="map-mountain-light"
+                d="
+                    M230 220
+                    L255 265
+                    L290 175
+                    L280 245
+                    L255 230
+                    Z
+                "
+            />
+
+        </g>
+
+
+        <g>
+
+            <path
+                class="map-mountain"
+                d="
+                    M650 150
+                    L690 90
+                    L725 145
+                    L765 75
+                    L805 155
+                    L845 105
+                    L895 200
+                    Z
+                "
+            />
+
+            <path
+                class="map-mountain-light"
+                d="
+                    M690 90
+                    L725 145
+                    L765 75
+                    L750 145
+                    L725 125
+                    Z
+                "
+            />
+
+        </g>
+
+
+        <g>
+
+            <path
+                class="map-mountain"
+                d="
+                    M770 500
+                    L815 430
+                    L850 480
+                    L900 390
+                    L940 470
+                    L990 420
+                    L1040 535
+                    Z
+                "
+            />
+
+        </g>
+
+
+        <g>
+
+            <path
+                class="map-mountain"
+                d="
+                    M220 565
+                    L260 500
+                    L300 540
+                    L340 465
+                    L385 550
+                    L430 500
+                    L470 590
+                    Z
+                "
+            />
+
+        </g>
+
+
+        <!-- FORESTS -->
+
+        <g class="map-forest">
+
+            <circle cx="290" cy="550" r="55"/>
+            <circle cx="340" cy="575" r="45"/>
+            <circle cx="380" cy="550" r="50"/>
+            <circle cx="330" cy="520" r="42"/>
+
+        </g>
+
+
+        <g class="map-forest">
+
+            <circle cx="850" cy="510" r="55"/>
+            <circle cx="900" cy="540" r="50"/>
+            <circle cx="945" cy="510" r="42"/>
+            <circle cx="900" cy="480" r="45"/>
+
+        </g>
+
+
+        <!-- REGION LABELS -->
+
+        <text
+            class="region-label"
+            x="285"
+            y="350"
+        >
+            HAAFINGAR
+        </text>
+
+        <text
+            class="region-label"
+            x="530"
+            y="270"
+        >
+            THE PALE
+        </text>
+
+        <text
+            class="region-label"
+            x="650"
+            y="475"
+        >
+            WHITERUN
+        </text>
+
+        <text
+            class="region-label"
+            x="875"
+            y="330"
+        >
+            EASTMARCH
+        </text>
+
+        <text
+            class="region-label"
+            x="910"
+            y="590"
+        >
+            THE RIFT
+        </text>
+
+        <text
+            class="region-label"
+            x="320"
+            y="625"
+        >
+            FALKREATH
+        </text>
+
+        <text
+            class="region-label"
+            x="260"
+            y="430"
+        >
+            THE REACH
+        </text>
+
+
+        <!-- =================================================
+             CITY MARKERS
+        ================================================= -->
+
+
+        <!-- SOLITUDE -->
+
+        <g
+            class="city-marker"
+            id="marker-Solitude"
+            transform="translate(250 205)"
+            onclick="selectCity('Solitude')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                S
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                SOLITUDE
+            </text>
+
+        </g>
+
+
+        <!-- MORTHAL -->
+
+        <g
+            class="city-marker"
+            id="marker-Morthal"
+            transform="translate(390 275)"
+            onclick="selectCity('Morthal')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                M
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                MORTHAL
+            </text>
+
+        </g>
+
+
+        <!-- DAWNSTAR -->
+
+        <g
+            class="city-marker"
+            id="marker-Dawnstar"
+            transform="translate(555 155)"
+            onclick="selectCity('Dawnstar')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                D
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                DAWNSTAR
+            </text>
+
+        </g>
+
+
+        <!-- WINTERHOLD -->
+
+        <g
+            class="city-marker"
+            id="marker-Winterhold"
+            transform="translate(800 155)"
+            onclick="selectCity('Winterhold')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                W
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                WINTERHOLD
+            </text>
+
+        </g>
+
+
+        <!-- WINDHELM -->
+
+        <g
+            class="city-marker"
+            id="marker-Windhelm"
+            transform="translate(925 280)"
+            onclick="selectCity('Windhelm')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                W
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                WINDHELM
+            </text>
+
+        </g>
+
+
+        <!-- WHITERUN -->
+
+        <g
+            class="city-marker"
+            id="marker-Whiterun"
+            transform="translate(620 380)"
+            onclick="selectCity('Whiterun')"
+        >
+
+            <circle r="29"/>
+
+            <text
+                class="crest"
+                y="7"
+                font-size="22"
+            >
+                W
+            </text>
+
+            <text
+                class="city-name"
+                y="52"
+            >
+                WHITERUN
+            </text>
+
+        </g>
+
+
+        <!-- MARKARTH -->
+
+        <g
+            class="city-marker"
+            id="marker-Markarth"
+            transform="translate(280 455)"
+            onclick="selectCity('Markarth')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                M
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                MARKARTH
+            </text>
+
+        </g>
+
+
+        <!-- FALKREATH -->
+
+        <g
+            class="city-marker"
+            id="marker-Falkreath"
+            transform="translate(430 590)"
+            onclick="selectCity('Falkreath')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                F
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                FALKREATH
+            </text>
+
+        </g>
+
+
+        <!-- RIFTEN -->
+
+        <g
+            class="city-marker"
+            id="marker-Riften"
+            transform="translate(850 570)"
+            onclick="selectCity('Riften')"
+        >
+
+            <circle r="25"/>
+
+            <text
+                class="crest"
+                y="6"
+                font-size="20"
+            >
+                R
+            </text>
+
+            <text
+                class="city-name"
+                y="47"
+            >
+                RIFTEN
+            </text>
+
+        </g>
+
+
+        <!-- MAP BORDER -->
+
+        <rect
+            x="10"
+            y="10"
+            width="1180"
+            height="740"
+            fill="none"
+            stroke="#55452d"
+            stroke-width="4"
+        />
+
+    </svg>
+
+
+    <!-- COMPASS -->
+
+    <div class="compass">
+
+        <div class="compass-line"></div>
+
+    </div>
+
+
+    <!-- LEGEND -->
+
+    <div class="map-legend">
+
+        <div class="legend-row">
+            <span class="legend-dot"></span>
+            Major Hold
+        </div>
+
+        <div class="legend-row">
+            <span>━━</span>
+            River
+        </div>
+
+        <div class="legend-row">
+            <span>╌╌</span>
+            Road
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =======================================================
+     WEATHER
+======================================================= -->
+
+<section class="weather-panel">
+
+    <div class="weather-top">
+
+        <div>
+
+            <div class="location-kicker">
+                Current Hold Conditions
+            </div>
+
+            <div
+                class="location-name"
+                id="locationName"
+            >
+                Whiterun
+            </div>
+
+            <div
+                class="hold-name"
+                id="holdName"
+            >
+                Whiterun Hold
+            </div>
 
         </div>
 
 
-        <!-- =====================================================
-             MAP
-        ===================================================== -->
+        <div
+            class="crest-display"
+            id="crestDisplay"
+        >
+            W
+        </div>
 
-        <section class="map-wrapper">
-
-            <div class="map">
-
-                <div class="map-title">
-                    SKYRIM PROVINCE
-                </div>
+    </div>
 
 
-                <!-- REGIONS -->
+    <div class="weather-main">
 
-                <div class="region whiterun"></div>
-                <div class="region haafingar"></div>
-                <div class="region hjaalmarch"></div>
-                <div class="region pale"></div>
-                <div class="region winterhold"></div>
-                <div class="region eastmarch"></div>
-                <div class="region rift"></div>
-                <div class="region falkreath"></div>
-                <div class="region reach"></div>
+        <div
+            class="weather-symbol"
+            id="weatherSymbol"
+        >
+            CLEAR
+        </div>
 
+        <div>
 
-                <!-- REGION LABELS -->
-
-                <div class="region-label label-whiterun">
-                    Whiterun Hold
-                </div>
-
-                <div class="region-label label-haafingar">
-                    Haafingar
-                </div>
-
-                <div class="region-label label-hjaalmarch">
-                    Hjaalmarch
-                </div>
-
-                <div class="region-label label-pale">
-                    The Pale
-                </div>
-
-                <div class="region-label label-winterhold">
-                    Winterhold
-                </div>
-
-                <div class="region-label label-eastmarch">
-                    Eastmarch
-                </div>
-
-                <div class="region-label label-rift">
-                    The Rift
-                </div>
-
-                <div class="region-label label-falkreath">
-                    Falkreath Hold
-                </div>
-
-                <div class="region-label label-reach">
-                    The Reach
-                </div>
-
-
-                <!-- LAKES -->
-
-                <div class="lake lake-one"></div>
-                <div class="lake lake-two"></div>
-
-
-                <!-- RIVERS -->
-
-                <div class="river river-one"></div>
-                <div class="river river-two"></div>
-                <div class="river river-three"></div>
-
-
-                <!-- ROADS -->
-
-                <div class="road road-one"></div>
-                <div class="road road-two"></div>
-                <div class="road road-three"></div>
-                <div class="road road-four"></div>
-
-
-                <!-- MOUNTAINS -->
-
-                <div class="mountain-range mountains-west">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-
-                <div class="mountain-range mountains-north">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-
-                <div class="mountain-range mountains-east">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-
-                <div class="mountain-range mountains-south">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-
-
-                <!-- =================================================
-                     CITIES
-                ================================================= -->
-
-                <button
-                    class="city"
-                    id="Solitude"
-                    onclick="selectCity('Solitude')">
-                    Solitude
-                </button>
-
-                <button
-                    class="city"
-                    id="Morthal"
-                    onclick="selectCity('Morthal')">
-                    Morthal
-                </button>
-
-                <button
-                    class="city"
-                    id="Dawnstar"
-                    onclick="selectCity('Dawnstar')">
-                    Dawnstar
-                </button>
-
-                <button
-                    class="city"
-                    id="Winterhold"
-                    onclick="selectCity('Winterhold')">
-                    Winterhold
-                </button>
-
-                <button
-                    class="city"
-                    id="Windhelm"
-                    onclick="selectCity('Windhelm')">
-                    Windhelm
-                </button>
-
-                <button
-                    class="city"
-                    id="Whiterun"
-                    onclick="selectCity('Whiterun')">
-                    Whiterun
-                </button>
-
-                <button
-                    class="city"
-                    id="Markarth"
-                    onclick="selectCity('Markarth')">
-                    Markarth
-                </button>
-
-                <button
-                    class="city"
-                    id="Falkreath"
-                    onclick="selectCity('Falkreath')">
-                    Falkreath
-                </button>
-
-                <button
-                    class="city"
-                    id="Riften"
-                    onclick="selectCity('Riften')">
-                    Riften
-                </button>
-
-
-                <!-- COMPASS -->
-
-                <div class="compass">
-
-                    <span class="north">
-                        N
-                    </span>
-
-                    <span class="south">
-                        S
-                    </span>
-
-                    <span class="east">
-                        E
-                    </span>
-
-                    <span class="west">
-                        W
-                    </span>
-
-                </div>
-
-
-                <!-- LEGEND -->
-
-                <div class="map-legend">
-                    Hold boundaries • Roads • Rivers • Mountains • Settlements
-                </div>
-
+            <div
+                class="temperature"
+                id="temperature"
+            >
+                54°F
             </div>
 
-        </section>
+            <div
+                class="condition"
+                id="condition"
+            >
+                Clear Skies
+            </div>
+
+            <div
+                class="weather-description"
+                id="weatherDescription"
+            >
+                Dry plains weather dominates the central hold.
+            </div>
+
+        </div>
+
+    </div>
 
 
-        <!-- =====================================================
-             WEATHER PANEL
-        ===================================================== -->
+    <!-- STATS -->
 
-        <section class="weather-panel">
+    <div class="stats-grid">
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Wind
+            </div>
+
+            <div
+                class="stat-value"
+                id="wind"
+            >
+                6 mph
+            </div>
+
+        </div>
 
 
-            <div class="weather-header">
+        <div class="stat">
 
-                <div>
+            <div class="stat-label">
+                Visibility
+            </div>
 
-                    <div
-                        class="location-name"
-                        id="locationName">
-                        Whiterun
-                    </div>
+            <div
+                class="stat-value"
+                id="visibility"
+            >
+                Excellent
+            </div>
 
-                    <div
-                        class="hold-name"
-                        id="holdName">
-                        Whiterun Hold
-                    </div>
+        </div>
 
-                    <div
-                        class="condition"
-                        id="condition">
-                        Clear Skies
-                    </div>
 
-                </div>
+        <div class="stat">
+
+            <div class="stat-label">
+                Humidity
+            </div>
+
+            <div
+                class="stat-value"
+                id="humidity"
+            >
+                42%
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Feels Like
+            </div>
+
+            <div
+                class="stat-value"
+                id="feels"
+            >
+                52°F
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Pressure
+            </div>
+
+            <div
+                class="stat-value"
+                id="pressure"
+            >
+                1014 mb
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Updated
+            </div>
+
+            <div
+                class="stat-value"
+                id="updated"
+            >
+                Now
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- HOLD STATUS -->
+
+    <div class="status-section">
+
+        <div class="status-title">
+            Hold World State
+        </div>
+
+        <div class="status-grid">
+
+            <div class="status-card">
+
+                <span>
+                    Security
+                </span>
+
+                <strong id="securityStatus">
+                    Secure
+                </strong>
 
             </div>
 
 
-            <!-- WEATHER MAIN -->
+            <div class="status-card">
 
-            <div class="weather-main">
+                <span>
+                    Travel
+                </span>
 
-                <div
-                    class="weather-icon"
-                    id="weatherIcon">
-                    CLEAR
-                </div>
-
-                <div>
-
-                    <div
-                        class="temperature"
-                        id="temperature">
-                        54°F
-                    </div>
-
-                    <div
-                        class="condition"
-                        id="condition2">
-                        Clear Skies
-                    </div>
-
-                </div>
+                <strong id="travelStatus">
+                    Open
+                </strong>
 
             </div>
 
 
-            <!-- WEATHER STATS -->
+            <div class="status-card">
 
-            <div class="stats">
+                <span>
+                    Trade
+                </span>
 
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Wind
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="wind">
-                        6 mph
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Visibility
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="visibility">
-                        Excellent
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Humidity
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="humidity">
-                        42%
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Feels Like
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="feels">
-                        52°F
-                    </div>
-
-                </div>
+                <strong id="tradeStatus">
+                    Normal
+                </strong>
 
             </div>
 
 
-            <!-- INFORMATION -->
+            <div class="status-card">
 
-            <div class="info-grid">
+                <span>
+                    Activity
+                </span>
 
-
-                <div class="info-box">
-
-                    <h3>
-                        Regional Pattern
-                    </h3>
-
-                    <p id="pattern">
-                        Dry plains weather dominates the central hold.
-                    </p>
-
-                </div>
-
-
-                <div class="info-box">
-
-                    <h3>
-                        Local Rumor
-                    </h3>
-
-                    <p id="rumor">
-                        Wolves have been spotted outside the western farms.
-                    </p>
-
-                </div>
-
-
-                <div class="info-box">
-
-                    <h3>
-                        Latest Event
-                    </h3>
-
-                    <p id="event">
-                        No major events reported.
-                    </p>
-
-                </div>
-
-
-                <div class="info-box">
-
-                    <h3>
-                        Time of Day
-                    </h3>
-
-                    <p id="dayStatus">
-                        Day
-                    </p>
-
-                </div>
+                <strong id="activityStatus">
+                    Calm
+                </strong>
 
             </div>
 
+        </div>
 
-        </section>
-
-    </main>
-
-
-    <!-- =========================================================
-         FOOTER
-    ========================================================= -->
-
-    <footer>
-        Skyrim Weather 24/7 • An unofficial fan project
-    </footer>
-
-
-    <script>
-
-
-        /* =========================================================
-           CITY WEATHER DATA
-        ========================================================= */
-
-        const cities = {
-
-            Whiterun: {
-                hold: "Whiterun Hold",
-                temp: 54,
-                condition: "Clear Skies",
-                icon: "CLEAR",
-                wind: "6 mph",
-                visibility: "Excellent",
-                humidity: "42%",
-                feels: "52°F",
-                pattern:
-                    "Dry plains weather dominates the central hold.",
-                rumor:
-                    "Wolves have been spotted outside the western farms."
-            },
-
-
-            Solitude: {
-                hold: "Haafingar",
-                temp: 47,
-                condition: "Cold Rain",
-                icon: "RAIN",
-                wind: "12 mph",
-                visibility: "Moderate",
-                humidity: "78%",
-                feels: "43°F",
-                pattern:
-                    "Moist coastal air is moving inland from the Sea of Ghosts.",
-                rumor:
-                    "Harbor workers expect rough conditions."
-            },
-
-
-            Morthal: {
-                hold: "Hjaalmarch",
-                temp: 41,
-                condition: "Heavy Fog",
-                icon: "FOG",
-                wind: "4 mph",
-                visibility: "Poor",
-                humidity: "91%",
-                feels: "40°F",
-                pattern:
-                    "Marsh moisture is producing dense fog across the hold.",
-                rumor:
-                    "Travelers are being warned about poor visibility on the main road."
-            },
-
-
-            Dawnstar: {
-                hold: "The Pale",
-                temp: 28,
-                condition: "Snow",
-                icon: "SNOW",
-                wind: "18 mph",
-                visibility: "Low",
-                humidity: "82%",
-                feels: "17°F",
-                pattern:
-                    "A cold northern system is pushing snow across the Pale.",
-                rumor:
-                    "Fishing vessels have been delayed by rough water."
-            },
-
-
-            Windhelm: {
-                hold: "Eastmarch",
-                temp: 31,
-                condition: "Snow",
-                icon: "SNOW",
-                wind: "15 mph",
-                visibility: "Moderate",
-                humidity: "75%",
-                feels: "20°F",
-                pattern:
-                    "Strong Eastmarch winds are carrying snow across the city.",
-                rumor:
-                    "Unusual movement has been reported outside the eastern walls."
-            },
+    </div>
 
 
-            Winterhold: {
-                hold: "Winterhold",
-                temp: 19,
-                condition: "Blizzard",
-                icon: "BLIZZARD",
-                wind: "25 mph",
-                visibility: "Very Low",
-                humidity: "88%",
-                feels: "4°F",
-                pattern:
-                    "An intense northern system is affecting the coast.",
-                rumor:
-                    "The College advises travelers to avoid exposed cliffs."
-            },
+    <!-- INFORMATION -->
 
+    <div class="info-grid">
 
-            Riften: {
-                hold: "The Rift",
-                temp: 45,
-                condition: "Forest Fog",
-                icon: "FOG",
-                wind: "5 mph",
-                visibility: "Poor",
-                humidity: "86%",
-                feels: "44°F",
-                pattern:
-                    "Moist forest air is creating thick fog around the Rift.",
-                rumor:
-                    "Hunters claim to have found unusually large tracks."
-            },
+        <div class="info-box">
 
+            <h3>
+                Regional Pattern
+            </h3>
 
-            Falkreath: {
-                hold: "Falkreath Hold",
-                temp: 43,
-                condition: "Overcast",
-                icon: "CLOUD",
-                wind: "7 mph",
-                visibility: "Good",
-                humidity: "69%",
-                feels: "41°F",
-                pattern:
-                    "Dense forest cover is keeping temperatures steady.",
-                rumor:
-                    "Hunters are reporting increased animal activity."
-            },
+            <p id="pattern">
+                Dry plains weather dominates the central hold.
+            </p>
 
+        </div>
 
-            Markarth: {
-                hold: "The Reach",
-                temp: 39,
-                condition: "Mountain Cloud",
-                icon: "CLOUD",
-                wind: "9 mph",
-                visibility: "Good",
-                humidity: "61%",
-                feels: "37°F",
-                pattern:
-                    "Mountain winds are pushing clouds through the Reach.",
-                rumor:
-                    "Miners report strange echoes deeper in the mountains."
-            }
 
-        };
+        <div class="info-box">
 
+            <h3>
+                Local Rumor
+            </h3>
 
-        /* =========================================================
-           NEWS
-        ========================================================= */
+            <p id="rumor">
+                Wolves have been spotted outside the western farms.
+            </p>
 
-        const news = [
+        </div>
 
-            "Frost Troll activity reported near the northern mountain passes.",
 
-            "Clear conditions continue across central Skyrim.",
+        <div class="info-box">
 
-            "Heavy snow is expected across the Pale tonight.",
+            <h3>
+                Current World Event
+            </h3>
 
-            "Dense fog is reducing visibility near Morthal.",
+            <p id="event">
+                No major events reported.
+            </p>
 
-            "Storm clouds are gathering over Eastmarch.",
+        </div>
 
-            "Solitude harbor workers report rough seas.",
 
-            "Hunters warn of increased activity near Falkreath.",
+        <div class="info-box">
 
-            "The College of Winterhold has issued a weather warning.",
+            <h3>
+                Time of Day
+            </h3>
 
-            "Several caravans are being delayed by mountain conditions.",
+            <p id="dayStatus">
+                Daylight conditions.
+            </p>
 
-            "Cold winds are sweeping across northern Skyrim.",
+        </div>
 
-            "Road conditions near Markarth remain stable.",
 
-            "Morthal visibility remains dangerously low.",
+        <div class="info-box">
 
-            "Farmers near Whiterun report clear skies.",
+            <h3>
+                Regional Forecast
+            </h3>
 
-            "Fishing vessels near Dawnstar are being delayed.",
+            <p id="forecast">
+                Stable conditions are expected.
+            </p>
 
-            "Strong winds are affecting Windhelm.",
+        </div>
 
-            "A sharp overnight temperature drop is expected.",
 
-            "The Rift remains under a calm weather pattern.",
+        <div class="info-box">
 
-            "Mountain passes may become difficult overnight.",
+            <h3>
+                Traveler Advisory
+            </h3>
 
-            "Guard patrols have increased along isolated roads.",
+            <p id="advisory">
+                Roads are currently open.
+            </p>
 
-            "Temperatures continue to fall across northern Skyrim.",
+        </div>
 
-            "Falkreath hunters report increased forest activity.",
+    </div>
 
-            "Fresh snowfall has reached the western mountains.",
+</section>
 
-            "Heavy clouds are forming over the Reach.",
 
-            "The Sea of Ghosts remains unsettled.",
+<!-- =======================================================
+     AUDIO
+======================================================= -->
 
-            "Visibility remains poor around the marshes.",
+<section class="audio-panel">
 
-            "Icy conditions are slowing northern travelers.",
+    <div class="audio-header">
 
-            "Merchants are preparing winter supplies.",
+        <div>
 
-            "A cold front is moving through Eastmarch.",
+            <div class="audio-title">
+                Ambient Weather
+            </div>
 
-            "Strange sounds have been reported in the forests.",
+            <div
+                id="audioStatus"
+                style="
+                    margin-top:5px;
+                    color:#77746b;
+                    font-size:.75rem;
+                "
+            >
+                Audio off
+            </div>
 
-            "Travelers are advised to check local conditions before departing.",
+        </div>
 
-            "A calm evening is expected around Whiterun.",
 
-            "Snowfall continues near Winterhold.",
+        <div class="audio-controls">
 
-            "Cold rain is moving toward Solitude.",
+            <button
+                class="audio-button"
+                id="audioToggle"
+                onclick="toggleAudio()"
+            >
+                Enable Ambience
+            </button>
 
-            "Fresh tracks have been discovered in the northern snow.",
 
-            "The roads near Markarth remain open.",
+            <select
+                class="audio-select"
+                id="audioType"
+                onchange="changeAmbient(this.value)"
+            >
 
-            "Falkreath is expecting a quiet night.",
+                <option value="auto">
+                    Automatic Weather
+                </option>
 
-            "The Rift remains unusually humid.",
+                <option value="rain">
+                    Rain
+                </option>
 
-            "Morthal travelers should expect poor visibility.",
+                <option value="snow">
+                    Snow Wind
+                </option>
 
-            "A cold northern breeze is spreading south.",
+                <option value="blizzard">
+                    Blizzard
+                </option>
 
-            "Merchants are preparing for another snowy week.",
+                <option value="fog">
+                    Fog Wind
+                </option>
 
-            "Storm clouds are approaching the eastern mountains.",
+                <option value="forest">
+                    Forest
+                </option>
 
-            "The Sea of Ghosts remains rough.",
+                <option value="clear">
+                    Clear Night
+                </option>
 
-            "Clear conditions are returning to Whiterun.",
+            </select>
 
-            "Heavy fog continues around the marshlands.",
 
-            "A blizzard warning remains active near Winterhold.",
+            <input
+                class="volume"
+                id="volumeControl"
+                type="range"
+                min="0"
+                max="100"
+                value="30"
+                oninput="setVolume(this.value)"
+            >
 
-            "Strong gusts are being recorded near Dawnstar.",
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =======================================================
+     EVENT HISTORY
+======================================================= -->
+
+<section class="history-panel">
+
+    <div class="panel-title">
+        Recent Provincial Events
+    </div>
+
+    <div
+        class="history-list"
+        id="historyList"
+    >
+
+        <div class="history-item">
+            Provincial monitoring system initialized.
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+<!-- PARTICLES -->
+
+<div id="weatherParticles"></div>
+
+
+<footer>
+
+    Skyrim Weather 24/7
+    •
+    Unofficial fan project
+    •
+    Provincial weather simulation
+
+</footer>
+
+
+<script>
+
+/* =========================================================
+   CITY DATA
+========================================================= */
+
+const cities = {
+
+    Whiterun: {
+        hold: "Whiterun Hold",
+        temp: 54,
+        condition: "Clear Skies",
+        symbol: "CLEAR",
+        wind: "6 mph",
+        visibility: "Excellent",
+        humidity: "42%",
+        feels: "52°F",
+        pressure: "1014 mb",
+        pattern:
+            "Dry plains weather dominates the central hold.",
+        rumor:
+            "Wolves have been spotted outside the western farms.",
+        forecast:
+            "Clear conditions should continue through the afternoon.",
+        advisory:
+            "The main roads around Whiterun are currently open.",
+        security: "Secure",
+        travel: "Open",
+        trade: "Normal",
+        activity: "Active",
+        audio: "clear"
+    },
+
+    Solitude: {
+        hold: "Haafingar",
+        temp: 47,
+        condition: "Cold Rain",
+        symbol: "RAIN",
+        wind: "12 mph",
+        visibility: "Moderate",
+        humidity: "78%",
+        feels: "43°F",
+        pressure: "1007 mb",
+        pattern:
+            "Moist coastal air is moving inland from the Sea of Ghosts.",
+        rumor:
+            "Harbor workers expect rough conditions before nightfall.",
+        forecast:
+            "Cold rain may continue along the coast.",
+        advisory:
+            "Travelers using the northern roads should expect wet conditions.",
+        security: "Watchful",
+        travel: "Difficult",
+        trade: "Delayed",
+        activity: "Busy",
+        audio: "rain"
+    },
+
+    Morthal: {
+        hold: "Hjaalmarch",
+        temp: 41,
+        condition: "Heavy Fog",
+        symbol: "FOG",
+        wind: "4 mph",
+        visibility: "Poor",
+        humidity: "91%",
+        feels: "40°F",
+        pressure: "1009 mb",
+        pattern:
+            "Marsh moisture is producing dense fog across Hjaalmarch.",
+        rumor:
+            "Travelers are being warned about poor visibility on the main road.",
+        forecast:
+            "Fog is expected to remain through the morning.",
+        advisory:
+            "Reduced visibility makes the marsh roads difficult to navigate.",
+        security: "Watchful",
+        travel: "Difficult",
+        trade: "Delayed",
+        activity: "Quiet",
+        audio: "fog"
+    },
+
+    Dawnstar: {
+        hold: "The Pale",
+        temp: 28,
+        condition: "Snow",
+        symbol: "SNOW",
+        wind: "18 mph",
+        visibility: "Low",
+        humidity: "82%",
+        feels: "17°F",
+        pressure: "998 mb",
+        pattern:
+            "A northern snow system is pushing across the Pale.",
+        rumor:
+            "Several fishing vessels have delayed their departure.",
+        forecast:
+            "Snowfall is expected to intensify toward evening.",
+        advisory:
+            "Travelers should prepare for icy roads and strong winds.",
+        security: "Watchful",
+        travel: "Difficult",
+        trade: "Delayed",
+        activity: "Reduced",
+        audio: "snow"
+    },
+
+    Windhelm: {
+        hold: "Eastmarch",
+        temp: 31,
+        condition: "Snow",
+        symbol: "SNOW",
+        wind: "15 mph",
+        visibility: "Moderate",
+        humidity: "75%",
+        feels: "20°F",
+        pressure: "1001 mb",
+        pattern:
+            "Strong Eastmarch winds are carrying snow across the city.",
+        rumor:
+            "Guards report strange movement outside the eastern walls.",
+        forecast:
+            "Cold winds and intermittent snow are expected overnight.",
+        advisory:
+            "Northern roads may become icy after sunset.",
+        security: "Watchful",
+        travel: "Difficult",
+        trade: "Normal",
+        activity: "Busy",
+        audio: "snow"
+    },
+
+    Winterhold: {
+        hold: "Winterhold",
+        temp: 19,
+        condition: "Blizzard",
+        symbol: "BLIZZARD",
+        wind: "25 mph",
+        visibility: "Very Low",
+        humidity: "88%",
+        feels: "4°F",
+        pressure: "985 mb",
+        pattern:
+            "An intense arctic system is affecting the northern coast.",
+        rumor:
+            "The College advises travelers to avoid exposed cliffs.",
+        forecast:
+            "Blizzard conditions may continue for several hours.",
+        advisory:
+            "Travel is strongly disrupted by wind and low visibility.",
+        security: "Restricted",
+        travel: "Dangerous",
+        trade: "Disrupted",
+        activity: "Minimal",
+        audio: "blizzard"
+    },
+
+    Riften: {
+        hold: "The Rift",
+        temp: 45,
+        condition: "Forest Fog",
+        symbol: "FOG",
+        wind: "5 mph",
+        visibility: "Poor",
+        humidity: "86%",
+        feels: "44°F",
+        pressure: "1010 mb",
+        pattern:
+            "Moist forest air is creating thick fog around the Rift.",
+        rumor:
+            "Hunters claim to have found unusually large tracks.",
+        forecast:
+            "Fog should gradually thin as the day progresses.",
+        advisory:
+            "Forest roads remain open but visibility is limited.",
+        security: "Watchful",
+        travel: "Open",
+        trade: "Normal",
+        activity: "Active",
+        audio: "forest"
+    },
+
+    Falkreath: {
+        hold: "Falkreath Hold",
+        temp: 43,
+        condition: "Overcast",
+        symbol: "CLOUD",
+        wind: "7 mph",
+        visibility: "Good",
+        humidity: "69%",
+        feels: "41°F",
+        pressure: "1013 mb",
+        pattern:
+            "Dense forest cover is keeping temperatures steady.",
+        rumor:
+            "Hunters are reporting increased animal activity.",
+        forecast:
+            "Cloud cover should remain over the forest.",
+        advisory:
+            "Most forest roads remain open.",
+        security: "Secure",
+        travel: "Open",
+        trade: "Normal",
+        activity: "Active",
+        audio: "forest"
+    },
+
+    Markarth: {
+        hold: "The Reach",
+        temp: 39,
+        condition: "Mountain Cloud",
+        symbol: "CLOUD",
+        wind: "9 mph",
+        visibility: "Good",
+        humidity: "61%",
+        feels: "37°F",
+        pressure: "1016 mb",
+        pattern:
+            "Mountain winds are pushing clouds through the Reach.",
+        rumor:
+            "Miners report strange echoes deeper in the mountains.",
+        forecast:
+            "Clouds will remain around the higher passes.",
+        advisory:
+            "Mountain roads remain open but conditions can change quickly.",
+        security: "Secure",
+        travel: "Open",
+        trade: "Normal",
+        activity: "Active",
+        audio: "forest"
+    }
+
+};
+
+
+/* =========================================================
+   NEWS
+========================================================= */
+
+const news = [
+
+    "Frost Troll activity reported near the northern mountain passes.",
+
+    "Clear conditions continue across central Skyrim.",
+
+    "Heavy snow is moving across the Pale.",
+
+    "Dense fog is reducing visibility near Morthal.",
+
+    "Eastmarch winds are increasing near Windhelm.",
+
+    "Solitude harbor workers report rough coastal conditions.",
+
+    "Hunters report increased activity near Falkreath.",
+
+    "The College of Winterhold has issued a weather warning.",
+
+    "Several caravans have delayed northern travel.",
+
+    "Cold winds are spreading across the eastern holds.",
+
+    "Mountain passes may become dangerous overnight.",
+
+    "Morthal visibility remains severely reduced.",
+
+    "Whiterun farmers report clear skies.",
+
+    "Dawnstar fishing vessels remain delayed.",
+
+    "Strong winds continue around Windhelm.",
+
+    "Temperatures are dropping across northern Skyrim.",
+
+    "The Rift remains unusually humid.",
+
+    "Travelers are being warned about mountain conditions.",
+
+    "Guard patrols have increased near isolated roads.",
+
+    "A northern temperature drop has been recorded.",
+
+    "Falkreath hunters report fresh tracks.",
+
+    "Clouds are gathering over the Reach.",
+
+    "The Sea of Ghosts remains rough.",
+
+    "Morthal fog may persist through the evening.",
 
-            "The night sky should remain clear over Whiterun.",
+    "Icy conditions are developing on northern roads.",
 
-            "Snowfall continues around Winterhold.",
+    "Merchants are preparing additional winter supplies.",
 
-            "Cold rain is moving across Solitude.",
+    "An Eastmarch cold front is moving south.",
 
-            "Hunters have reported fresh tracks in the snow.",
+    "Strange sounds have been reported in the forests.",
 
-            "Road conditions near Markarth remain stable.",
+    "The roads around Whiterun remain open.",
 
-            "A quiet night is expected across Falkreath.",
+    "Snow-covered roads are slowing caravans.",
 
-            "The Rift remains unusually humid.",
+    "A calm weather pattern is settling over Falkreath.",
 
-            "Travelers near Morthal should expect poor visibility.",
+    "Strong gusts are being recorded near Dawnstar.",
 
-            "A cold northern breeze is spreading south.",
+    "The night sky should remain clear over Whiterun.",
 
-            "Merchants are preparing for another snowy week.",
+    "Snowfall continues around Winterhold.",
 
-            "Storm clouds are approaching the eastern mountains.",
+    "Cold rain is moving across Solitude.",
 
-            "The Sea of Ghosts remains rough.",
+    "Hunters report fresh tracks near Riften.",
 
-            "Clear conditions are returning to Whiterun.",
+    "Markarth roads remain stable.",
 
-            "Heavy fog continues around the marshlands.",
+    "The Rift remains unusually humid.",
 
-            "Travelers are advised to check local weather before leaving town."
+    "Travelers near Morthal should expect poor visibility.",
 
-        ];
+    "A cold northern breeze is spreading south.",
 
+    "Storm clouds are approaching the eastern mountains.",
 
-        /* =========================================================
-           RANDOM EVENTS
-        ========================================================= */
+    "The Sea of Ghosts remains unsettled.",
 
-        const events = [
+    "A blizzard warning remains active near Winterhold.",
 
-            "A wolf pack has been spotted near a rural road.",
+    "Travelers are advised to check local conditions.",
 
-            "Fresh tracks have been discovered outside the settlement.",
+    "Guard patrols have been increased near remote roads.",
 
-            "A sudden gust has swept through the nearby roads.",
+    "Several merchants have changed their travel schedules.",
 
-            "Strange mountain sounds have been reported by travelers.",
+    "A sudden wind shift has been recorded near Whiterun.",
 
-            "A guard patrol has been dispatched to investigate.",
+    "Mountain clouds are gathering over the Reach.",
 
-            "A roadside camp has appeared near the main road.",
+    "Forest conditions remain damp around Falkreath.",
 
-            "A hunting party has returned from the forest.",
+    "The northern coast remains extremely cold.",
 
-            "Unusual lights have been seen in the distance.",
+    "Several travelers have reported difficult road conditions.",
 
-            "A mountain pass has become difficult to cross.",
+    "Clear weather has returned to central Skyrim.",
 
-            "A nearby settlement has requested additional guards.",
+    "Snow continues to accumulate near Dawnstar.",
 
-            "Rough water has been reported along the coast.",
+    "Coastal winds are increasing near Solitude.",
 
-            "A mysterious traveler has been seen heading north."
+    "Fog is spreading through the Hjaalmarch.",
 
-        ];
+    "The Rift forest remains active after sunset.",
 
+    "A cold front continues moving across Eastmarch.",
 
-        /* =========================================================
-           SELECT CITY
-        ========================================================= */
+    "Weather watchers are monitoring northern conditions."
 
-        function selectCity(name) {
+];
 
-            const city = cities[name];
 
-            if (!city) {
-                return;
-            }
+/* =========================================================
+   WORLD EVENTS
+========================================================= */
 
+const events = [
 
-            document.getElementById(
-                "locationName"
-            ).textContent = name;
+    "A wolf pack has been reported near a rural road.",
 
+    "Travelers report fresh tracks outside the hold.",
 
-            document.getElementById(
-                "holdName"
-            ).textContent = city.hold;
+    "A sudden gust has disrupted several roadside camps.",
 
+    "Strange mountain sounds have been reported.",
 
-            document.getElementById(
-                "temperature"
-            ).textContent =
-                city.temp + "°F";
+    "A guard patrol has been dispatched to investigate.",
 
+    "A roadside caravan has stopped because of poor weather.",
 
-            document.getElementById(
-                "condition"
-            ).textContent =
-                city.condition;
+    "A hunting party has returned earlier than expected.",
 
+    "Unusual lights have been reported in the distance.",
 
-            document.getElementById(
-                "condition2"
-            ).textContent =
-                city.condition;
+    "A mountain pass has become difficult to cross.",
 
+    "A settlement has requested additional guards.",
 
-            document.getElementById(
-                "weatherIcon"
-            ).textContent =
-                city.icon;
+    "Rough water has delayed coastal travel.",
 
+    "A mysterious traveler has been seen on the main road."
 
-            document.getElementById(
-                "wind"
-            ).textContent =
-                city.wind;
+];
 
 
-            document.getElementById(
-                "visibility"
-            ).textContent =
-                city.visibility;
+/* =========================================================
+   STATE
+========================================================= */
 
+let selectedCity =
+    localStorage.getItem("skyrimSelectedCity")
+    || "Whiterun";
 
-            document.getElementById(
-                "humidity"
-            ).textContent =
-                city.humidity;
+let newsIndex = 0;
 
+let eventIndex = 0;
 
-            document.getElementById(
-                "feels"
-            ).textContent =
-                city.feels;
+let history = [];
 
+let mapScale = 1;
 
-            document.getElementById(
-                "pattern"
-            ).textContent =
-                city.pattern;
 
+/* =========================================================
+   SELECT CITY
+========================================================= */
 
-            document.getElementById(
-                "rumor"
-            ).textContent =
-                city.rumor;
+function selectCity(name) {
 
+    if (!cities[name]) {
+        return;
+    }
 
-            document
-                .querySelectorAll(".city")
-                .forEach(button => {
+    selectedCity = name;
 
-                    button.classList.remove(
-                        "active"
-                    );
+    localStorage.setItem(
+        "skyrimSelectedCity",
+        name
+    );
 
-                });
+    const city = cities[name];
 
 
-            document
-                .getElementById(name)
-                .classList.add("active");
+    document
+        .getElementById("locationName")
+        .textContent = name;
 
 
-            localStorage.setItem(
-                "skyrimCity",
-                name
+    document
+        .getElementById("holdName")
+        .textContent = city.hold;
+
+
+    document
+        .getElementById("temperature")
+        .textContent =
+        city.temp + "°F";
+
+
+    document
+        .getElementById("condition")
+        .textContent =
+        city.condition;
+
+
+    document
+        .getElementById("weatherSymbol")
+        .textContent =
+        city.symbol;
+
+
+    document
+        .getElementById("weatherDescription")
+        .textContent =
+        city.pattern;
+
+
+    document
+        .getElementById("wind")
+        .textContent =
+        city.wind;
+
+
+    document
+        .getElementById("visibility")
+        .textContent =
+        city.visibility;
+
+
+    document
+        .getElementById("humidity")
+        .textContent =
+        city.humidity;
+
+
+    document
+        .getElementById("feels")
+        .textContent =
+        city.feels;
+
+
+    document
+        .getElementById("pressure")
+        .textContent =
+        city.pressure;
+
+
+    document
+        .getElementById("pattern")
+        .textContent =
+        city.pattern;
+
+
+    document
+        .getElementById("rumor")
+        .textContent =
+        city.rumor;
+
+
+    document
+        .getElementById("forecast")
+        .textContent =
+        city.forecast;
+
+
+    document
+        .getElementById("advisory")
+        .textContent =
+        city.advisory;
+
+
+    document
+        .getElementById("securityStatus")
+        .textContent =
+        city.security;
+
+
+    document
+        .getElementById("travelStatus")
+        .textContent =
+        city.travel;
+
+
+    document
+        .getElementById("tradeStatus")
+        .textContent =
+        city.trade;
+
+
+    document
+        .getElementById("activityStatus")
+        .textContent =
+        city.activity;
+
+
+    document
+        .getElementById("crestDisplay")
+        .textContent =
+        getCrest(name);
+
+
+    document
+        .getElementById("updated")
+        .textContent =
+        "Just now";
+
+
+    updateMarkers();
+
+    updateWeatherEffects();
+
+    if (
+        audioEnabled &&
+        document.getElementById("audioType").value === "auto"
+    ) {
+        changeAmbient(city.audio);
+    }
+
+}
+
+
+/* =========================================================
+   CRESTS
+========================================================= */
+
+function getCrest(city) {
+
+    const crests = {
+
+        Whiterun: "W",
+        Solitude: "S",
+        Morthal: "M",
+        Dawnstar: "D",
+        Winterhold: "W",
+        Windhelm: "W",
+        Riften: "R",
+        Falkreath: "F",
+        Markarth: "M"
+
+    };
+
+    return crests[city] || "?";
+
+}
+
+
+/* =========================================================
+   MARKERS
+========================================================= */
+
+function updateMarkers() {
+
+    document
+        .querySelectorAll(".city-marker")
+        .forEach(marker => {
+
+            marker.classList.remove(
+                "active"
             );
 
-
-            createWeatherEffect(
-                city.condition
-            );
-
-        }
+        });
 
 
-        /* =========================================================
-           NEWS ROTATION
-        ========================================================= */
-
-        let newsIndex = 0;
-
-
-        function rotateNews() {
-
-            document.getElementById(
-                "newsText"
-            ).textContent =
-                news[newsIndex];
-
-
-            newsIndex++;
-
-
-            if (
-                newsIndex >= news.length
-            ) {
-
-                newsIndex = 0;
-
-            }
-
-        }
-
-
-        rotateNews();
-
-
-        setInterval(
-            rotateNews,
-            7000
+    const active =
+        document.getElementById(
+            "marker-" + selectedCity
         );
 
 
-        /* =========================================================
-           RANDOM EVENTS
-        ========================================================= */
+    if (active) {
 
-        function rotateEvent() {
-
-            const random =
-                Math.floor(
-                    Math.random() *
-                    events.length
-                );
-
-
-            document.getElementById(
-                "event"
-            ).textContent =
-                events[random];
-
-        }
-
-
-        rotateEvent();
-
-
-        setInterval(
-            rotateEvent,
-            12000
+        active.classList.add(
+            "active"
         );
 
+    }
 
-        /* =========================================================
-           DAY / NIGHT SYSTEM
-        ========================================================= */
-
-        function updateClock() {
-
-            const now =
-                new Date();
+}
 
 
-            const hours =
-                now.getHours();
+/* =========================================================
+   NEWS ROTATION
+========================================================= */
+
+function rotateNews() {
+
+    document
+        .getElementById("newsText")
+        .textContent =
+        news[newsIndex];
 
 
-            const minutes =
-                String(
-                    now.getMinutes()
-                ).padStart(2, "0");
+    newsIndex++;
+
+    if (
+        newsIndex >= news.length
+    ) {
+        newsIndex = 0;
+    }
+
+}
 
 
-            const seconds =
-                String(
-                    now.getSeconds()
-                ).padStart(2, "0");
+rotateNews();
+
+setInterval(
+    rotateNews,
+    6500
+);
 
 
-            let period;
+/* =========================================================
+   WORLD EVENTS
+========================================================= */
+
+function triggerWorldEvent(
+    customText = null,
+    dragon = false
+) {
+
+    const city = cities[selectedCity];
+
+    const text =
+        customText ||
+        events[eventIndex];
 
 
-            if (
-                hours >= 6 &&
-                hours < 8
-            ) {
+    if (!customText) {
 
-                period = "Dawn";
+        eventIndex++;
 
-            }
-
-            else if (
-                hours >= 8 &&
-                hours < 18
-            ) {
-
-                period = "Day";
-
-            }
-
-            else if (
-                hours >= 18 &&
-                hours < 20
-            ) {
-
-                period = "Dusk";
-
-            }
-
-            else {
-
-                period = "Night";
-
-            }
-
-
-            document.getElementById(
-                "clock"
-            ).textContent =
-                `Tamriel Time • ${
-                    hours
-                        .toString()
-                        .padStart(2, "0")
-                }:${minutes}:${seconds} • ${period}`;
-
-
-            document.getElementById(
-                "dayStatus"
-            ).textContent =
-                period;
-
-
-            if (
-                period === "Night"
-            ) {
-
-                document.body.classList.add(
-                    "night"
-                );
-
-            }
-
-            else {
-
-                document.body.classList.remove(
-                    "night"
-                );
-
-            }
-
-        }
-
-
-        updateClock();
-
-
-        setInterval(
-            updateClock,
-            1000
-        );
-
-
-        /* =========================================================
-           SNOW EFFECT
-        ========================================================= */
-
-        function createWeatherEffect(
-            condition
+        if (
+            eventIndex >= events.length
         ) {
-
-            document
-                .querySelectorAll(".snow")
-                .forEach(snow => {
-                    snow.remove();
-                });
-
-
-            if (
-                condition !== "Snow" &&
-                condition !== "Blizzard"
-            ) {
-
-                return;
-
-            }
-
-
-            const amount =
-                condition === "Blizzard"
-                    ? 80
-                    : 40;
-
-
-            for (
-                let i = 0;
-                i < amount;
-                i++
-            ) {
-
-                const snow =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                snow.className =
-                    "snow";
-
-
-                snow.style.left =
-                    Math.random() *
-                    100 +
-                    "vw";
-
-
-                snow.style.animationDuration =
-                    (
-                        Math.random() *
-                        5 +
-                        4
-                    ) +
-                    "s";
-
-
-                snow.style.animationDelay =
-                    Math.random() *
-                    5 +
-                    "s";
-
-
-                const size =
-                    Math.random() *
-                    5 +
-                    3;
-
-
-                snow.style.width =
-                    size +
-                    "px";
-
-
-                snow.style.height =
-                    size +
-                    "px";
-
-
-                document.body.appendChild(
-                    snow
-                );
-
-            }
-
+            eventIndex = 0;
         }
 
-
-        /* =========================================================
-           DRAGON ATTACK SYSTEM
-           
-           IMPORTANT:
-           There is ONE timer only.
-
-           First attack:
-           The next exact hour.
-
-           After that:
-           Every 60 minutes.
-
-           Example:
-           9:00
-           10:00
-           11:00
-           12:00
-           1:00
-           2:00
-           3:00
-           etc.
-        ========================================================= */
-
-        function triggerDragonAttack() {
-
-            const locations =
-                Object.keys(cities);
+    }
 
 
-            const randomLocation =
-                locations[
-                    Math.floor(
-                        Math.random() *
-                        locations.length
-                    )
-                ];
+    document
+        .getElementById("event")
+        .textContent =
+        text;
 
 
-            const messages = [
-
-                `A dragon has been sighted near ${randomLocation}. Guards are responding.`,
-
-                `Dragon activity reported over ${randomLocation}. Travelers are advised to remain alert.`,
-
-                `A dragon has been spotted approaching ${randomLocation}. Local guards have been alerted.`,
-
-                `Reports of a dragon are coming in from the skies above ${randomLocation}.`
-
-            ];
+    const alert =
+        document.getElementById(
+            "eventAlert"
+        );
 
 
-            const randomMessage =
-                messages[
-                    Math.floor(
-                        Math.random() *
-                        messages.length
-                    )
-                ];
+    const title =
+        document.getElementById(
+            "eventTitle"
+        );
 
 
-            document.getElementById(
-                "dragonText"
-            ).textContent =
-                randomMessage;
+    const eventText =
+        document.getElementById(
+            "eventText"
+        );
 
 
-            const now =
-                new Date();
+    eventText.textContent =
+        text;
 
 
-            document.getElementById(
-                "dragonTime"
-            ).textContent =
-                `Hourly event • ${now.toLocaleTimeString(
-                    [],
-                    {
-                        hour: "numeric",
-                        minute: "2-digit"
-                    }
-                )}`;
+    alert.classList.add(
+        "visible"
+    );
 
 
-            const alert =
-                document.getElementById(
-                    "dragonAlert"
-                );
+    if (dragon) {
+
+        alert.classList.add(
+            "dragon"
+        );
+
+        title.textContent =
+            "DRAGON ALERT";
+
+    } else {
+
+        alert.classList.remove(
+            "dragon"
+        );
+
+        title.textContent =
+            "WORLD EVENT";
+
+    }
 
 
-            alert.classList.add(
-                "show"
+    addHistory(
+        selectedCity +
+        ": " +
+        text
+    );
+
+
+    if (dragon) {
+
+        document
+            .getElementById("securityStatus")
+            .textContent =
+            "Dragon Alert";
+
+    }
+
+}
+
+
+/* =========================================================
+   EVENT ROTATION
+========================================================= */
+
+function randomWorldEvent() {
+
+    const random =
+        Math.floor(
+            Math.random() *
+            events.length
+        );
+
+
+    triggerWorldEvent(
+        events[random]
+    );
+
+}
+
+
+setInterval(
+    randomWorldEvent,
+    90000
+);
+
+
+/* =========================================================
+   HOURLY DRAGON ATTACK
+========================================================= */
+
+function triggerDragonAttack() {
+
+    const names =
+        Object.keys(cities);
+
+
+    const city =
+        names[
+            Math.floor(
+                Math.random() *
+                names.length
+            )
+        ];
+
+
+    const messages = [
+
+        "A dragon has been spotted in the skies above " +
+        city +
+        ".",
+
+        "Guards in " +
+        city +
+        " report a dragon approaching the hold.",
+
+        "Travelers report a dragon circling near " +
+        city +
+        ".",
+
+        "A dragon has been sighted near the roads outside " +
+        city +
+        "."
+
+    ];
+
+
+    const message =
+        messages[
+            Math.floor(
+                Math.random() *
+                messages.length
+            )
+        ];
+
+
+    triggerWorldEvent(
+        message,
+        true
+    );
+
+
+    addHistory(
+        "Dragon sighting near " +
+        city
+    );
+
+}
+
+
+/* =========================================================
+   EXACT TOP-OF-HOUR TIMER
+========================================================= */
+
+function scheduleHourlyDragon() {
+
+    const now =
+        new Date();
+
+
+    const nextHour =
+        new Date(now);
+
+
+    nextHour.setHours(
+        now.getHours() + 1,
+        0,
+        0,
+        0
+    );
+
+
+    const delay =
+        nextHour.getTime()
+        -
+        now.getTime();
+
+
+    setTimeout(() => {
+
+        triggerDragonAttack();
+
+
+        setInterval(
+            triggerDragonAttack,
+            60 * 60 * 1000
+        );
+
+    }, delay);
+
+}
+
+
+scheduleHourlyDragon();
+
+
+/* =========================================================
+   SKYRIM TIME SYSTEM
+========================================================= */
+
+const skyrimMonths = [
+
+    {
+        name: "Morning Star",
+        season: "Winter"
+    },
+
+    {
+        name: "Sun's Dawn",
+        season: "Winter"
+    },
+
+    {
+        name: "First Seed",
+        season: "Spring"
+    },
+
+    {
+        name: "Rain's Hand",
+        season: "Spring"
+    },
+
+    {
+        name: "Second Seed",
+        season: "Spring"
+    },
+
+    {
+        name: "Midyear",
+        season: "Summer"
+    },
+
+    {
+        name: "Sun's Height",
+        season: "Summer"
+    },
+
+    {
+        name: "Last Seed",
+        season: "Summer"
+    },
+
+    {
+        name: "Hearthfire",
+        season: "Autumn"
+    },
+
+    {
+        name: "Frostfall",
+        season: "Autumn"
+    },
+
+    {
+        name: "Sun's Dusk",
+        season: "Winter"
+    },
+
+    {
+        name: "Evening Star",
+        season: "Winter"
+    }
+
+];
+
+
+/* =========================================================
+   UPDATE TIME
+========================================================= */
+
+function updateTamrielTime() {
+
+    const now =
+        new Date();
+
+
+    /*
+       This converts real time into
+       a continuously moving Skyrim clock.
+    */
+
+    const hours =
+        now.getHours();
+
+
+    const minutes =
+        now.getMinutes();
+
+
+    const seconds =
+        now.getSeconds();
+
+
+    const totalSeconds =
+        hours * 3600 +
+        minutes * 60 +
+        seconds;
+
+
+    const skyrimDaySeconds =
+        24 * 3600;
+
+
+    const progress =
+        totalSeconds /
+        skyrimDaySeconds;
+
+
+    const tamrielMinutes =
+        Math.floor(
+            progress *
+            24 *
+            60
+        );
+
+
+    const skyrimHour =
+        Math.floor(
+            tamrielMinutes / 60
+        );
+
+
+    const skyrimMinute =
+        tamrielMinutes % 60;
+
+
+    const hourText =
+        String(
+            skyrimHour
+        ).padStart(2,"0");
+
+
+    const minuteText =
+        String(
+            skyrimMinute
+        ).padStart(2,"0");
+
+
+    const period =
+        skyrimHour >= 6 &&
+        skyrimHour < 18
+            ? "Daytime"
+            : "Night";
+
+
+    document
+        .getElementById("skyrimHour")
+        .textContent =
+        hourText +
+        ":" +
+        minuteText;
+
+
+    document
+        .getElementById("dayPeriod")
+        .textContent =
+        period;
+
+
+    document
+        .getElementById("tamrielClock")
+        .textContent =
+        "Tamriel Time • " +
+        hourText +
+        ":" +
+        minuteText;
+
+
+    /*
+       Generate a Tamriel calendar date
+       from the current real calendar.
+    */
+
+    const monthIndex =
+        now.getMonth();
+
+
+    const month =
+        skyrimMonths[
+            monthIndex
+        ];
+
+
+    const day =
+        now.getDate();
+
+
+    document
+        .getElementById("tamrielDate")
+        .textContent =
+        day +
+        "th of " +
+        month.name;
+
+
+    document
+        .getElementById("seasonText")
+        .textContent =
+        month.season;
+
+
+    if (
+        period === "Night"
+    ) {
+
+        document
+            .body
+            .classList
+            .add("night");
+
+        document
+            .getElementById("dayStatus")
+            .textContent =
+            "Night has fallen across Skyrim. Visibility is reduced.";
+
+    } else {
+
+        document
+            .body
+            .classList
+            .remove("night");
+
+        document
+            .getElementById("dayStatus")
+            .textContent =
+            "Daylight conditions are currently active.";
+
+    }
+
+}
+
+
+updateTamrielTime();
+
+setInterval(
+    updateTamrielTime,
+    1000
+);
+
+
+/* =========================================================
+   WEATHER EFFECTS
+========================================================= */
+
+function updateWeatherEffects() {
+
+    const city =
+        cities[selectedCity];
+
+
+    const container =
+        document.getElementById(
+            "weatherParticles"
+        );
+
+
+    container.innerHTML = "";
+
+
+    let amount = 0;
+
+
+    if (
+        city.symbol === "SNOW"
+    ) {
+
+        amount = 45;
+
+    }
+
+
+    if (
+        city.symbol === "BLIZZARD"
+    ) {
+
+        amount = 100;
+
+    }
+
+
+    if (
+        city.symbol === "RAIN"
+    ) {
+
+        amount = 30;
+
+    }
+
+
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
+
+        const particle =
+            document.createElement(
+                "div"
             );
 
 
-            document.getElementById(
-                "event"
-            ).textContent =
-                randomMessage;
+        particle.className =
+            "particle";
 
 
-            document.getElementById(
-                "newsText"
-            ).textContent =
-                "URGENT: Dragon activity has been reported across Skyrim.";
+        particle.style.left =
+            Math.random() * 100 +
+            "%";
 
 
-            setTimeout(() => {
-
-                alert.classList.remove(
-                    "show"
-                );
-
-            }, 15000);
-
-        }
+        particle.style.animationDuration =
+            (
+                2 +
+                Math.random() * 5
+            ) +
+            "s";
 
 
-        /* =========================================================
-           HOURLY DRAGON TIMER
-        ========================================================= */
-
-        function scheduleHourlyDragon() {
-
-            const now =
-                new Date();
-
-
-            const nextHour =
-                new Date(now);
-
-
-            nextHour.setHours(
-                now.getHours() + 1,
-                0,
-                0,
-                0
-            );
-
-
-            const delay =
-                nextHour.getTime() -
-                now.getTime();
-
-
-            setTimeout(() => {
-
-                triggerDragonAttack();
-
-
-                /*
-                    After the first exact-hour attack,
-                    continue once every hour.
-                */
-
-                setInterval(
-                    triggerDragonAttack,
-                    60 * 60 * 1000
-                );
-
-            }, delay);
-
-        }
-
-
-        scheduleHourlyDragon();
-
-
-        /* =========================================================
-           LOAD SAVED CITY
-        ========================================================= */
-
-        const savedCity =
-            localStorage.getItem(
-                "skyrimCity"
-            );
+        particle.style.animationDelay =
+            (
+                Math.random() * 5
+            ) +
+            "s";
 
 
         if (
-            savedCity &&
-            cities[savedCity]
+            city.symbol === "RAIN"
         ) {
 
-            selectCity(
-                savedCity
-            );
+            particle.style.width =
+                "2px";
+
+            particle.style.height =
+                "12px";
+
+            particle.style.borderRadius =
+                "0";
+
+            particle.style.background =
+                "rgba(150,190,210,.55)";
 
         }
 
-        else {
 
-            selectCity(
-                "Whiterun"
-            );
+        if (
+            city.symbol === "BLIZZARD"
+        ) {
+
+            particle.style.width =
+                "5px";
+
+            particle.style.height =
+                "5px";
+
+            particle.style.animationDuration =
+                (
+                    .7 +
+                    Math.random() * 1.5
+                ) +
+                "s";
 
         }
 
 
-    </script>
+        container.appendChild(
+            particle
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MAP ZOOM
+========================================================= */
+
+function mapZoom(amount) {
+
+    mapScale *= amount;
+
+
+    mapScale =
+        Math.max(
+            .75,
+            Math.min(
+                2,
+                mapScale
+            )
+        );
+
+
+    const map =
+        document.getElementById(
+            "skyrimMap"
+        );
+
+
+    map.style.transform =
+        "scale(" +
+        mapScale +
+        ")";
+
+
+    map.style.transformOrigin =
+        "center center";
+
+}
+
+
+function resetMap() {
+
+    mapScale = 1;
+
+
+    const map =
+        document.getElementById(
+            "skyrimMap"
+        );
+
+
+    map.style.transform =
+        "scale(1)";
+
+}
+
+
+/* =========================================================
+   EVENT HISTORY
+========================================================= */
+
+function addHistory(text) {
+
+    history.unshift({
+        text: text,
+        time: new Date()
+    });
+
+
+    if (
+        history.length > 8
+    ) {
+
+        history.pop();
+
+    }
+
+
+    renderHistory();
+
+}
+
+
+function renderHistory() {
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    list.innerHTML = "";
+
+
+    history.forEach(item => {
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "history-item";
+
+
+        const time =
+            item.time.toLocaleTimeString(
+                [],
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
+
+
+        row.textContent =
+            "[" +
+            time +
+            "] " +
+            item.text;
+
+
+        list.appendChild(
+            row
+        );
+
+    });
+
+
+    if (
+        history.length === 0
+    ) {
+
+        list.innerHTML =
+            '<div class="history-item">No recent events.</div>';
+
+    }
+
+}
+
+
+/* =========================================================
+   AUDIO ENGINE
+   Browser-generated ambience
+========================================================= */
+
+let audioContext = null;
+
+let audioMaster = null;
+
+let noiseSource = null;
+
+let noiseGain = null;
+
+let filterNode = null;
+
+let audioEnabled = false;
+
+let audioMode = "auto";
+
+
+function createNoiseBuffer() {
+
+    if (!audioContext) {
+        return null;
+    }
+
+
+    const bufferSize =
+        audioContext.sampleRate *
+        4;
+
+
+    const buffer =
+        audioContext.createBuffer(
+            1,
+            bufferSize,
+            audioContext.sampleRate
+        );
+
+
+    const data =
+        buffer.getChannelData(0);
+
+
+    for (
+        let i = 0;
+        i < bufferSize;
+        i++
+    ) {
+
+        data[i] =
+            Math.random() * 2 - 1;
+
+    }
+
+
+    return buffer;
+
+}
+
+
+/* =========================================================
+   START AUDIO
+========================================================= */
+
+function startAudio() {
+
+    if (audioEnabled) {
+        return;
+    }
+
+
+    const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+
+    if (!AudioContextClass) {
+
+        document
+            .getElementById("audioStatus")
+            .textContent =
+            "Ambient audio is not supported by this browser.";
+
+        return;
+
+    }
+
+
+    audioContext =
+        new AudioContextClass();
+
+
+    audioMaster =
+        audioContext.createGain();
+
+
+    audioMaster.gain.value =
+        .3;
+
+
+    audioMaster.connect(
+        audioContext.destination
+    );
+
+
+    noiseGain =
+        audioContext.createGain();
+
+
+    noiseGain.gain.value =
+        .08;
+
+
+    filterNode =
+        audioContext.createBiquadFilter();
+
+
+    filterNode.type =
+        "lowpass";
+
+
+    filterNode.frequency.value =
+        1200;
+
+
+    noiseSource =
+        audioContext.createBufferSource();
+
+
+    noiseSource.buffer =
+        createNoiseBuffer();
+
+
+    noiseSource.loop =
+        true;
+
+
+    noiseSource
+        .connect(filterNode);
+
+
+    filterNode
+        .connect(noiseGain);
+
+
+    noiseGain
+        .connect(audioMaster);
+
+
+    noiseSource.start();
+
+
+    audioEnabled = true;
+
+
+    document
+        .getElementById("audioToggle")
+        .textContent =
+        "Disable Ambience";
+
+
+    document
+        .getElementById("audioStatus")
+        .textContent =
+        "Ambient weather active";
+
+
+    updateAudioSound();
+
+}
+
+
+/* =========================================================
+   STOP AUDIO
+========================================================= */
+
+function stopAudio() {
+
+    if (!audioEnabled) {
+        return;
+    }
+
+
+    if (noiseSource) {
+
+        try {
+            noiseSource.stop();
+        } catch (e) {}
+
+    }
+
+
+    if (audioContext) {
+
+        audioContext.close();
+
+    }
+
+
+    audioContext = null;
+
+    noiseSource = null;
+
+    noiseGain = null;
+
+    filterNode = null;
+
+    audioMaster = null;
+
+    audioEnabled = false;
+
+
+    document
+        .getElementById("audioToggle")
+        .textContent =
+        "Enable Ambience";
+
+
+    document
+        .getElementById("audioStatus")
+        .textContent =
+        "Audio off";
+
+}
+
+
+/* =========================================================
+   AUDIO TOGGLE
+========================================================= */
+
+function toggleAudio() {
+
+    if (
+        audioEnabled
+    ) {
+
+        stopAudio();
+
+    } else {
+
+        startAudio();
+
+    }
+
+}
+
+
+/* =========================================================
+   VOLUME
+========================================================= */
+
+function setVolume(value) {
+
+    if (!audioMaster) {
+        return;
+    }
+
+
+    audioMaster.gain.value =
+        Number(value) / 100;
+
+}
+
+
+/* =========================================================
+   CHANGE AMBIENCE
+========================================================= */
+
+function changeAmbient(mode) {
+
+    audioMode = mode;
+
+
+    if (!audioEnabled) {
+        return;
+    }
+
+
+    updateAudioSound();
+
+}
+
+
+/* =========================================================
+   AUDIO PROFILE
+========================================================= */
+
+function updateAudioSound() {
+
+    if (
+        !audioEnabled ||
+        !audioContext ||
+        !filterNode ||
+        !noiseGain
+    ) {
+        return;
+    }
+
+
+    let mode =
+        audioMode;
+
+
+    if (
+        mode === "auto"
+    ) {
+
+        mode =
+            cities[selectedCity].audio;
+
+    }
+
+
+    const now =
+        audioContext.currentTime;
+
+
+    if (
+        mode === "rain"
+    ) {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                3200,
+                now,
+                .4
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .16,
+                now,
+                .5
+            );
+
+    }
+
+
+    else if (
+        mode === "snow"
+    ) {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                900,
+                now,
+                .5
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .10,
+                now,
+                .5
+            );
+
+    }
+
+
+    else if (
+        mode === "blizzard"
+    ) {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                550,
+                now,
+                .3
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .28,
+                now,
+                .35
+            );
+
+    }
+
+
+    else if (
+        mode === "fog"
+    ) {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                350,
+                now,
+                .6
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .08,
+                now,
+                .7
+            );
+
+    }
+
+
+    else if (
+        mode === "forest"
+    ) {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                1700,
+                now,
+                .6
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .05,
+                now,
+                .8
+            );
+
+    }
+
+
+    else {
+
+        filterNode.frequency
+            .setTargetAtTime(
+                500,
+                now,
+                .8
+            );
+
+        noiseGain.gain
+            .setTargetAtTime(
+                .025,
+                now,
+                1
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   AUTO WEATHER AUDIO
+========================================================= */
+
+document
+    .getElementById("audioType")
+    .addEventListener(
+        "change",
+        function() {
+
+            audioMode =
+                this.value;
+
+            updateAudioSound();
+
+        }
+    );
+
+
+/* =========================================================
+   RANDOM WEATHER VARIATION
+========================================================= */
+
+function subtleWeatherVariation() {
+
+    const city =
+        cities[selectedCity];
+
+
+    let temperature =
+        city.temp;
+
+
+    const hour =
+        new Date().getHours();
+
+
+    /*
+       Colder at night,
+       warmer during daytime.
+    */
+
+    if (
+        hour < 6 ||
+        hour > 20
+    ) {
+
+        temperature -= 2;
+
+    }
+
+
+    document
+        .getElementById("temperature")
+        .textContent =
+        temperature +
+        "°F";
+
+
+    document
+        .getElementById("updated")
+        .textContent =
+        "Live";
+
+}
+
+
+setInterval(
+    subtleWeatherVariation,
+    30000
+);
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+selectCity(
+    selectedCity
+);
+
+
+/* =========================================================
+   INITIAL WORLD EVENT
+========================================================= */
+
+setTimeout(() => {
+
+    triggerWorldEvent(
+        "Provincial weather network is now monitoring all major holds."
+    );
+
+}, 1500);
+
+
+/* =========================================================
+   SAVE AUDIO PREFERENCE
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        localStorage.setItem(
+            "skyrimAudioMode",
+            document
+                .getElementById("audioType")
+                .value
+        );
+
+    }
+);
+
+
+const savedAudioMode =
+    localStorage.getItem(
+        "skyrimAudioMode"
+    );
+
+
+if (savedAudioMode) {
+
+    document
+        .getElementById("audioType")
+        .value =
+        savedAudioMode;
+
+    audioMode =
+        savedAudioMode;
+
+}
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "+"
+            ||
+            event.key === "="
+        ) {
+
+            mapZoom(1.15);
+
+        }
+
+
+        if (
+            event.key === "-"
+        ) {
+
+            mapZoom(.87);
+
+        }
+
+
+        if (
+            event.key.toLowerCase()
+            === "r"
+        ) {
+
+            resetMap();
+
+        }
+
+    }
+);
+
+</script>
 
 </body>
 </html>
