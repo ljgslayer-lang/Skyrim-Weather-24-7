@@ -3541,6 +3541,26 @@ h1,h2,h3{
 }
 </style>
 
+<style id="map-weather-fronts">
+/* WEATHER THAT ACTUALLY MOVES ACROSS THE MAP */
+.map-weather-system{pointer-events:none}
+.weather-cloud{fill:#303842;opacity:.18;filter:blur(5px)}
+.weather-rain{stroke:#9bb9c8;stroke-width:5;stroke-linecap:round;opacity:.58}
+.weather-snow{fill:#e9edf0;opacity:.8}
+.weather-fog{fill:#d9d5c8;opacity:.11;filter:blur(10px)}
+.weather-front-line{fill:none;stroke:#b9cbd0;stroke-width:22;opacity:.09;filter:blur(7px)}
+.weather-lightning{stroke:#e8d9a5;stroke-width:7;opacity:0}
+.weather-region-label{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:13px;
+    fill:#e5d5ae;
+    paint-order:stroke;
+    stroke:#17110b;
+    stroke-width:5px;
+    opacity:.78;
+}
+</style>
+
 </head>
 
 <body>
@@ -5475,6 +5495,123 @@ if(document.readyState==="loading"){
         }
     },30000);
 
+})();
+</script>
+
+<script id="moving-map-weather">
+(function(){
+    "use strict";
+    const NS="http://www.w3.org/2000/svg";
+    const overlay=document.getElementById("mapOverlay");
+    if(!overlay) return;
+
+    let layer=document.getElementById("movingWeatherLayer");
+    if(!layer){
+        layer=document.createElementNS(NS,"g");
+        layer.id="movingWeatherLayer";
+        layer.setAttribute("class","map-weather-system");
+        overlay.insertBefore(layer,overlay.firstChild);
+    }
+
+    const systems=[
+        {x:826,y:361,type:"rain",name:"COASTAL RAIN",rx:210,ry:130,speed:.025},
+        {x:984,y:526,type:"fog",name:"MARSH FOG",rx:190,ry:120,speed:.018},
+        {x:1486,y:305,type:"snow",name:"PALE SNOW",rx:220,ry:145,speed:.022},
+        {x:2035,y:260,type:"blizzard",name:"BLIZZARD",rx:300,ry:180,speed:.032},
+        {x:2198,y:490,type:"snow",name:"EASTMARCH SNOW",rx:210,ry:140,speed:.019},
+        {x:2449,y:990,type:"fog",name:"RIFT FOG",rx:220,ry:150,speed:.016},
+        {x:1088,y:1000,type:"cloud",name:"FOREST CLOUD",rx:250,ry:150,speed:.014},
+        {x:157,y:1080,type:"cloud",name:"REACH CLOUD",rx:230,ry:145,speed:.017}
+    ];
+
+    const groups=[];
+
+    function el(tag,attrs,parent){
+        const n=document.createElementNS(NS,tag);
+        Object.keys(attrs||{}).forEach(k=>n.setAttribute(k,attrs[k]));
+        parent.appendChild(n);
+        return n;
+    }
+
+    systems.forEach((s,index)=>{
+        const g=el("g",{transform:"translate("+s.x+" "+s.y+")"},layer);
+        const front=el("ellipse",{cx:0,cy:0,rx:s.rx,ry:s.ry,class:"weather-front-line"},g);
+
+        if(s.type==="rain"){
+            for(let i=0;i<30;i++){
+                el("line",{x1:(i*31)%400-200,y1:(i*19)%230-115,x2:(i*31)%400-218,y2:(i*19)%230-68,class:"weather-rain"},g);
+            }
+        }else if(s.type==="snow"||s.type==="blizzard"){
+            for(let i=0;i<(s.type==="blizzard"?55:28);i++){
+                el("circle",{cx:(i*43)%500-250,cy:(i*29)%280-140,r:(i%3)+2,class:"weather-snow"},g);
+            }
+        }else if(s.type==="fog"){
+            for(let i=0;i<7;i++){
+                el("ellipse",{cx:(i*61)%360-180,cy:(i*37)%180-90,rx:130,ry:38,class:"weather-fog"},g);
+            }
+        }else{
+            for(let i=0;i<6;i++){
+                el("ellipse",{cx:(i*85)%400-200,cy:(i*41)%120-60,rx:100,ry:45,class:"weather-cloud"},g);
+            }
+        }
+
+        const label=el("text",{x:0,y:-s.ry-14,class:"weather-region-label","text-anchor":"middle"},g);
+        label.textContent=s.name;
+        groups.push({s,g,front,index});
+    });
+
+    /* A broad storm front periodically sweeps over the province. */
+    const travelling=el("g",{opacity:"0.0"},layer);
+    const travellingCloud=el("ellipse",{cx:0,cy:0,rx:420,ry:260,class:"weather-cloud"},travelling);
+    const travellingRain=[];
+    for(let i=0;i<70;i++){
+        travellingRain.push(el("line",{
+            x1:(i*53)%760-380,y1:(i*31)%500-250,
+            x2:(i*53)%760-395,y2:(i*31)%500-190,
+            class:"weather-rain"
+        },travelling));
+    }
+
+    const start=performance.now();
+
+    function frame(now){
+        const t=(now-start)/1000;
+
+        groups.forEach((item)=>{
+            const s=item.s;
+            const driftX=Math.sin(t*s.speed*1.8+item.index)*32;
+            const driftY=Math.cos(t*s.speed*1.3+item.index)*18;
+            item.g.setAttribute("transform","translate("+(s.x+driftX)+" "+(s.y+driftY)+")");
+
+            item.g.querySelectorAll(".weather-rain").forEach((p,i)=>{
+                const baseX=(i*31)%400-200;
+                const baseY=(i*19)%230-115;
+                const x=((baseX+t*38*s.speed*40)%400)-200;
+                const y=((baseY+t*55)%230)-115;
+                p.setAttribute("x1",x);
+                p.setAttribute("y1",y);
+                p.setAttribute("x2",x-18);
+                p.setAttribute("y2",y+60);
+            });
+
+            item.g.querySelectorAll(".weather-snow").forEach((p,i)=>{
+                const x=(((i*43)+t*26*(1+item.index*.08))%500)-250;
+                const y=(((i*29)+t*18)%280)-140;
+                p.setAttribute("cx",x);
+                p.setAttribute("cy",y);
+            });
+        });
+
+        const sweep=(t/75)%1.25;
+        const sx=350+sweep*2600;
+        const sy=820+Math.sin(t*.09)*170;
+        travelling.setAttribute("transform","translate("+sx+" "+sy+")");
+        travelling.setAttribute("opacity",sweep<1 ? ".20" : "0");
+
+        requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
 })();
 </script>
 
