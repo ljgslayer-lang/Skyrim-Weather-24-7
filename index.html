@@ -4243,7 +4243,7 @@ function updateWeatherParticles(d){
 }
 
 /* ============================================================
-   SKYRIM CLOCK
+   SKYRIM CLOCK — WORKING DAY/NIGHT CYCLE
 ============================================================ */
 
 const skyrimMonths = [
@@ -4252,69 +4252,36 @@ const skyrimMonths = [
     "Hearthfire","Frostfall","Sun's Dusk","Evening Star"
 ];
 
-let skyrimMinutes =
-    Number(localStorage.getItem("skyrimMinutes"));
+/*
+   One complete Skyrim day = 24 real minutes.
+   Every real minute advances the Skyrim clock by one hour.
+   Versioning resets the old saved clock once so a previously
+   saved nighttime does not make the site appear permanently dark.
+*/
+const SKYRIM_CLOCK_VERSION = "2";
+const savedClockVersion = localStorage.getItem("skyrimClockVersion");
 
-if(!Number.isFinite(skyrimMinutes)){
-    skyrimMinutes = 12*60;
-}
+let skyrimMinutes = Number(localStorage.getItem("skyrimMinutes"));
+let skyrimDay = Number(localStorage.getItem("skyrimDay"));
+let skyrimMonth = Number(localStorage.getItem("skyrimMonth"));
 
-let skyrimDay =
-    Number(localStorage.getItem("skyrimDay"));
-
-if(!Number.isFinite(skyrimDay)){
+if(
+    savedClockVersion !== SKYRIM_CLOCK_VERSION ||
+    !Number.isFinite(skyrimMinutes) ||
+    !Number.isFinite(skyrimDay) ||
+    !Number.isFinite(skyrimMonth)
+){
+    skyrimMinutes = 8 * 60;   // Start at 08:00 — daytime.
     skyrimDay = 17;
-}
-
-let skyrimMonth =
-    Number(localStorage.getItem("skyrimMonth"));
-
-if(!Number.isFinite(skyrimMonth)){
     skyrimMonth = 7;
+    localStorage.setItem("skyrimClockVersion", SKYRIM_CLOCK_VERSION);
+    localStorage.setItem("skyrimMinutes", String(skyrimMinutes));
+    localStorage.setItem("skyrimDay", String(skyrimDay));
+    localStorage.setItem("skyrimMonth", String(skyrimMonth));
 }
 
 function pad(n){
     return String(n).padStart(2,"0");
-}
-
-let forceNightStyle = false;
-
-function updateNightVisual(){
-    const hour = Math.floor(skyrimMinutes/60);
-    const naturalNight = hour>=20 || hour<6;
-    const night = forceNightStyle || naturalNight;
-    setText("dayState",forceNightStyle ? "Night — Forced" : (night ? "Night" : "Daylight"));
-    document.body.classList.toggle("night",night);
-    const overlay=document.getElementById("mapNightOverlay");
-    if(overlay) overlay.classList.toggle("active",night);
-}
-
-function updateSkyrimClock(){
-    skyrimMinutes += 10;
-
-    if(skyrimMinutes >= 24*60){
-        skyrimMinutes = 0;
-        skyrimDay++;
-
-        if(skyrimDay>30){
-            skyrimDay=1;
-            skyrimMonth=(skyrimMonth+1)%12;
-        }
-    }
-
-    localStorage.setItem("skyrimMinutes",skyrimMinutes);
-    localStorage.setItem("skyrimDay",skyrimDay);
-    localStorage.setItem("skyrimMonth",skyrimMonth);
-
-    const hour = Math.floor(skyrimMinutes/60);
-    const minute = skyrimMinutes%60;
-
-    setText(
-        "skyrimClock",
-        `${skyrimDay}${ordinal(skyrimDay)} ${skyrimMonths[skyrimMonth]}, 4E 201 — ${pad(hour)}:${pad(minute)}`
-    );
-
-    updateNightVisual();
 }
 
 function ordinal(n){
@@ -4327,8 +4294,75 @@ function ordinal(n){
     }
 }
 
-updateSkyrimClock();
-setInterval(updateSkyrimClock,60000);
+let forceNightStyle = false;
+
+function updateNightVisual(){
+    const hour = Math.floor(skyrimMinutes / 60);
+
+    /*
+       Skyrim-style lighting:
+       05:00–06:59 = dawn
+       07:00–18:59 = day
+       19:00–20:59 = dusk
+       21:00–04:59 = night
+    */
+    const phase =
+        hour >= 21 || hour < 5 ? "Night" :
+        hour >= 19 ? "Dusk" :
+        hour >= 5 && hour < 7 ? "Dawn" :
+        "Daylight";
+
+    const naturalNight = phase === "Night";
+    const night = forceNightStyle || naturalNight;
+
+    setText(
+        "dayState",
+        forceNightStyle ? "Night — Forced" : phase
+    );
+
+    document.body.classList.toggle("night", night);
+
+    const overlay = document.getElementById("mapNightOverlay");
+    if(overlay){
+        overlay.classList.toggle("active", night);
+    }
+}
+
+function renderSkyrimClock(){
+    const hour = Math.floor(skyrimMinutes / 60);
+    const minute = skyrimMinutes % 60;
+
+    setText(
+        "skyrimClock",
+        `${skyrimDay}${ordinal(skyrimDay)} ${skyrimMonths[skyrimMonth]}, 4E 201 — ${pad(hour)}:${pad(minute)}`
+    );
+
+    updateNightVisual();
+}
+
+function advanceSkyrimClock(){
+    // One real minute = one Skyrim hour.
+    skyrimMinutes += 60;
+
+    if(skyrimMinutes >= 24 * 60){
+        skyrimMinutes -= 24 * 60;
+        skyrimDay++;
+
+        if(skyrimDay > 30){
+            skyrimDay = 1;
+            skyrimMonth = (skyrimMonth + 1) % 12;
+        }
+    }
+
+    localStorage.setItem("skyrimMinutes", String(skyrimMinutes));
+    localStorage.setItem("skyrimDay", String(skyrimDay));
+    localStorage.setItem("skyrimMonth", String(skyrimMonth));
+
+    renderSkyrimClock();
+}
+
+renderSkyrimClock();
+setInterval(advanceSkyrimClock, 60000);
 
 /* ============================================================
    REAL CLOCK
