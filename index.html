@@ -4827,7 +4827,10 @@ setInterval(spawnEncounters, 300000);
 
 /* ============================================================
    SKYRIM MINI-GAME — COURIER RUN
+   Stable version: self-contained and safe if the page is resized.
 ============================================================ */
+
+(function(){
 
 const gameBoard=document.getElementById("gameBoard");
 const courierSeal=document.getElementById("courierSeal");
@@ -4843,525 +4846,508 @@ const courierStreak=document.getElementById("courierStreak");
 const courierTargetText=document.getElementById("courierTargetText");
 const courierCrosshair=document.getElementById("courierCrosshair");
 
-const courierTargets=[
-    "WHITERUN","RIFTEN","SOLITUDE","MARKARTH",
-    "WINDHELM","DAWNSTAR","FALKREATH","MORTHAL",
-    "WINTERHOLD"
-];
+if(gameBoard && courierSeal && gameMessage && gameTimeEl && gameScoreEl &&
+   gameBestEl && gameComboEl && startGame && gameReset &&
+   courierObjective && courierStreak && courierTargetText && courierCrosshair){
 
-let gameScore=0;
-let gameTime=30;
-let gameTimer=null;
-let gameRunning=false;
-let gameCombo=0;
-let gameBest=Number(localStorage.getItem("skyrimCourierBest")||0);
-let courierTarget="";
-let courierTargetStarted=0;
-let courierBestReaction=99999;
+    const courierTargets=[
+        "WHITERUN","RIFTEN","SOLITUDE","MARKARTH",
+        "WINDHELM","DAWNSTAR","FALKREATH","MORTHAL","WINTERHOLD"
+    ];
 
-gameBestEl.textContent=gameBest;
+    let gameScore=0;
+    let gameTime=30;
+    let gameTimer=null;
+    let gameRunning=false;
+    let gameCombo=0;
+    let gameBest=Number(localStorage.getItem("skyrimCourierBest")||0);
+    let courierTarget="";
+    let courierTargetStarted=0;
 
-function chooseCourierTarget(){
-    let next;
-    do{
-        next=courierTargets[Math.floor(Math.random()*courierTargets.length)];
-    }while(next===courierTarget && courierTargets.length>1);
+    gameBestEl.textContent=gameBest;
 
-    courierTarget=next;
-    courierTargetText.textContent=next;
-    courierObjective.textContent=`DELIVERY: ${next}`;
-    courierStreak.textContent=`STREAK x${Math.max(1,gameCombo)}`;
-    courierTargetStarted=performance.now();
-}
-
-function moveCourier(){
-    const rect=gameBoard.getBoundingClientRect();
-    const padX=18;
-    const padTop=76;
-    const targetW=Math.min(154,rect.width-30);
-    const targetH=82;
-    const maxX=Math.max(padX,rect.width-targetW-padX);
-    const maxY=Math.max(padTop,rect.height-targetH-18);
-
-    courierSeal.style.width=targetW+"px";
-    courierSeal.style.left=`${padX+Math.random()*(maxX-padX)}px`;
-    courierSeal.style.top=`${padTop+Math.random()*(maxY-padTop)}px`;
-
-    const sealX=courierSeal.offsetLeft+targetW/2;
-    const sealY=courierSeal.offsetTop+targetH/2;
-    courierCrosshair.style.left=sealX+"px";
-    courierCrosshair.style.top=sealY+"px";
-}
-
-function endGame(){
-    gameRunning=false;
-    clearInterval(gameTimer);
-    courierSeal.hidden=true;
-    courierCrosshair.hidden=true;
-
-    gameMessage.textContent =
-        `RUN COMPLETE — ${gameScore} deliveries • best combo x${gameCombo}.`;
-
-    if(gameScore>gameBest){
-        gameBest=gameScore;
-        localStorage.setItem("skyrimCourierBest",gameBest);
-        gameBestEl.textContent=gameBest;
-    }
-}
-
-function startCourierRun(){
-    clearInterval(gameTimer);
-
-    gameScore=0;
-    gameTime=30;
-    gameCombo=0;
-    courierTarget="";
-    courierBestReaction=99999;
-    gameRunning=true;
-
-    gameScoreEl.textContent=0;
-    gameTimeEl.textContent=30;
-    gameComboEl.textContent=0;
-    courierStreak.textContent="STREAK x1";
-
-    gameMessage.textContent="";
-    courierSeal.hidden=false;
-    courierCrosshair.hidden=false;
-
-    chooseCourierTarget();
-    moveCourier();
-
-    gameTimer=setInterval(()=>{
-        gameTime--;
-        gameTimeEl.textContent=gameTime;
-
-        if(gameTime<=0){
-            endGame();
+    function chooseCourierTarget(){
+        let next=courierTargets[Math.floor(Math.random()*courierTargets.length)];
+        while(next===courierTarget && courierTargets.length>1){
+            next=courierTargets[Math.floor(Math.random()*courierTargets.length)];
         }
-    },1000);
-}
 
-courierSeal.addEventListener("click",()=>{
-    if(!gameRunning) return;
-
-    const reaction=performance.now()-courierTargetStarted;
-    courierBestReaction=Math.min(courierBestReaction,reaction);
-
-    gameScore += 1 + Math.min(4,Math.floor(gameCombo/4));
-    gameCombo++;
-
-    gameScoreEl.textContent=gameScore;
-    gameComboEl.textContent=gameCombo;
-    courierStreak.textContent=`STREAK x${gameCombo}`;
-
-    // Reward fast deliveries with a tiny time bonus.
-    if(reaction<1300){
-        gameTime=Math.min(30,gameTime+1);
-        gameTimeEl.textContent=gameTime;
+        courierTarget=next;
+        courierTargetText.textContent=next;
+        courierObjective.textContent="DELIVERY: "+next;
+        courierStreak.textContent="STREAK x"+Math.max(1,gameCombo);
+        courierTargetStarted=performance.now();
     }
 
-    chooseCourierTarget();
-    moveCourier();
-});
+    function moveCourier(){
+        const rect=gameBoard.getBoundingClientRect();
 
-startGame.addEventListener("click",startCourierRun);
+        if(rect.width<80 || rect.height<140) return;
 
-gameReset.addEventListener("click",()=>{
-    clearInterval(gameTimer);
-    gameRunning=false;
-    gameScore=0;
-    gameTime=30;
-    gameCombo=0;
+        const pad=18;
+        const hudSpace=70;
+        const targetW=Math.min(154,Math.max(105,rect.width-pad*2));
+        const targetH=82;
 
-    gameScoreEl.textContent=0;
-    gameTimeEl.textContent=30;
-    gameComboEl.textContent=0;
-    courierObjective.textContent="DELIVERY: READY";
-    courierStreak.textContent="STREAK x1";
+        const maxX=Math.max(pad,rect.width-targetW-pad);
+        const minY=Math.min(hudSpace,Math.max(10,rect.height-targetH-18));
+        const maxY=Math.max(minY,rect.height-targetH-18);
 
-    courierSeal.hidden=true;
-    courierCrosshair.hidden=true;
-    gameMessage.textContent="Press START RUN to begin";
-});
+        const x=pad+Math.random()*Math.max(0,maxX-pad);
+        const y=minY+Math.random()*Math.max(0,maxY-minY);
+
+        courierSeal.style.width=targetW+"px";
+        courierSeal.style.left=x+"px";
+        courierSeal.style.top=y+"px";
+
+        courierCrosshair.style.left=(x+targetW/2)+"px";
+        courierCrosshair.style.top=(y+targetH/2)+"px";
+    }
+
+    function endCourierRun(){
+        gameRunning=false;
+        clearInterval(gameTimer);
+        gameTimer=null;
+        courierSeal.hidden=true;
+        courierCrosshair.hidden=true;
+        gameMessage.textContent="RUN COMPLETE — "+gameScore+" deliveries. Best combo x"+gameCombo+".";
+
+        if(gameScore>gameBest){
+            gameBest=gameScore;
+            localStorage.setItem("skyrimCourierBest",gameBest);
+            gameBestEl.textContent=gameBest;
+        }
+    }
+
+    function startCourierRun(){
+        clearInterval(gameTimer);
+
+        gameScore=0;
+        gameTime=30;
+        gameCombo=0;
+        courierTarget="";
+        gameRunning=true;
+
+        gameScoreEl.textContent="0";
+        gameTimeEl.textContent="30";
+        gameComboEl.textContent="0";
+        courierStreak.textContent="STREAK x1";
+        gameMessage.textContent="";
+
+        courierSeal.hidden=false;
+        courierCrosshair.hidden=false;
+
+        chooseCourierTarget();
+        requestAnimationFrame(moveCourier);
+
+        gameTimer=setInterval(()=>{
+            if(!gameRunning) return;
+
+            gameTime--;
+            gameTimeEl.textContent=gameTime;
+
+            if(gameTime<=0) endCourierRun();
+        },1000);
+    }
+
+    courierSeal.addEventListener("click",()=>{
+        if(!gameRunning) return;
+
+        const reaction=performance.now()-courierTargetStarted;
+
+        gameScore++;
+        gameCombo++;
+
+        gameScoreEl.textContent=gameScore;
+        gameComboEl.textContent=gameCombo;
+        courierStreak.textContent="STREAK x"+gameCombo;
+
+        if(reaction<1300 && gameTime<30){
+            gameTime++;
+            gameTimeEl.textContent=gameTime;
+        }
+
+        chooseCourierTarget();
+        moveCourier();
+    });
+
+    startGame.addEventListener("click",startCourierRun);
+
+    gameReset.addEventListener("click",()=>{
+        clearInterval(gameTimer);
+        gameTimer=null;
+        gameRunning=false;
+        gameScore=0;
+        gameTime=30;
+        gameCombo=0;
+
+        gameScoreEl.textContent="0";
+        gameTimeEl.textContent="30";
+        gameComboEl.textContent="0";
+        courierObjective.textContent="DELIVERY: READY";
+        courierStreak.textContent="STREAK x1";
+        courierSeal.hidden=true;
+        courierCrosshair.hidden=true;
+        gameMessage.textContent="Press START RUN to begin";
+    });
+
+    window.addEventListener("resize",()=>{
+        if(gameRunning) moveCourier();
+    });
+
+    gameReset.click();
+}
+
 
 /* ============================================================
    SKYRIM MINI-GAME — DRAGONBORN'S SERPENT
+   Stable canvas version
 ============================================================ */
 
 const snakeCanvas=document.getElementById("snakeCanvas");
 const snakeBoard=document.getElementById("snakeBoard");
-const snakeCtx=snakeCanvas.getContext("2d");
-
-const snakeScoreEl=document.getElementById("snakeScore");
-const snakeBestEl=document.getElementById("snakeBest");
-const snakeBestSideEl=document.getElementById("snakeBestSide");
-const snakeSpeedEl=document.getElementById("snakeSpeed");
-const snakeGoalEl=document.getElementById("snakeGoal");
-
 const snakeStartBtn=document.getElementById("snakeStart");
 const snakeResetBtn=document.getElementById("snakeReset");
 
-const SNAKE_COLS=24;
-const SNAKE_ROWS=16;
+if(snakeCanvas && snakeBoard && snakeStartBtn && snakeResetBtn){
 
-let snake=[];
-let snakeFood={x:12,y:8};
-let snakeDir={x:1,y:0};
-let snakeNextDir={x:1,y:0};
-let snakeTimer=null;
-let snakeRunning=false;
-let snakeScore=0;
-let snakeSpeed=1;
-let snakeBest=Number(localStorage.getItem("skyrimSerpentBest")||0);
+    const snakeCtx=snakeCanvas.getContext("2d");
 
-snakeBestEl.textContent=snakeBest;
-snakeBestSideEl.textContent=snakeBest;
+    const snakeScoreEl=document.getElementById("snakeScore");
+    const snakeBestEl=document.getElementById("snakeBest");
+    const snakeBestSideEl=document.getElementById("snakeBestSide");
+    const snakeSpeedEl=document.getElementById("snakeSpeed");
+    const snakeGoalEl=document.getElementById("snakeGoal");
 
-function resizeSnakeCanvas(){
-    const rect=snakeBoard.getBoundingClientRect();
-    const dpr=Math.max(1,window.devicePixelRatio||1);
+    const COLS=24;
+    const ROWS=16;
 
-    snakeCanvas.width=Math.floor(rect.width*dpr);
-    snakeCanvas.height=Math.floor(rect.height*dpr);
-    snakeCanvas.style.width=rect.width+"px";
-    snakeCanvas.style.height=rect.height+"px";
+    let snake=[];
+    let food={x:12,y:8};
+    let direction={x:1,y:0};
+    let nextDirection={x:1,y:0};
+    let timer=null;
+    let running=false;
+    let score=0;
+    let speed=1;
+    let best=Number(localStorage.getItem("skyrimSerpentBest")||0);
+    let touchStart=null;
 
-    snakeCtx.setTransform(dpr,0,0,dpr,0,0);
+    snakeBestEl.textContent=best;
+    snakeBestSideEl.textContent=best;
 
-    drawSnake();
-}
+    function resizeSnake(){
+        const rect=snakeBoard.getBoundingClientRect();
+        const dpr=Math.max(1,window.devicePixelRatio||1);
 
-function randomSnakeFood(){
-    let spot;
+        if(rect.width<=0 || rect.height<=0) return;
 
-    do{
-        spot={
-            x:Math.floor(Math.random()*SNAKE_COLS),
-            y:Math.floor(Math.random()*SNAKE_ROWS)
-        };
-    }while(
-        snake.some(part=>part.x===spot.x && part.y===spot.y)
-    );
+        snakeCanvas.width=Math.floor(rect.width*dpr);
+        snakeCanvas.height=Math.floor(rect.height*dpr);
+        snakeCanvas.style.width=rect.width+"px";
+        snakeCanvas.style.height=rect.height+"px";
 
-    snakeFood=spot;
-}
-
-function resetSnake(){
-    clearInterval(snakeTimer);
-    snakeRunning=false;
-
-    snake=[
-        {x:8,y:8},
-        {x:7,y:8},
-        {x:6,y:8},
-        {x:5,y:8}
-    ];
-
-    snakeDir={x:1,y:0};
-    snakeNextDir={x:1,y:0};
-
-    snakeScore=0;
-    snakeSpeed=1;
-
-    snakeScoreEl.textContent=0;
-    snakeSpeedEl.textContent=1;
-    snakeGoalEl.textContent=0;
-
-    randomSnakeFood();
-    drawSnake();
-}
-
-function drawHelmet(ctx,x,y,size){
-    const cx=x+size/2;
-    const cy=y+size/2;
-
-    ctx.save();
-    ctx.translate(cx,cy);
-
-    // Viking / Dragonborn-inspired helmet silhouette.
-    ctx.fillStyle="#9d8a61";
-    ctx.strokeStyle="#241d15";
-    ctx.lineWidth=2;
-
-    ctx.beginPath();
-    ctx.arc(0,2,size*.34,Math.PI,0);
-    ctx.lineTo(size*.30,size*.25);
-    ctx.lineTo(size*.22,size*.38);
-    ctx.lineTo(-size*.22,size*.38);
-    ctx.lineTo(-size*.30,size*.25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Horns
-    ctx.beginPath();
-    ctx.moveTo(-size*.28,-size*.05);
-    ctx.quadraticCurveTo(-size*.48,-size*.25,-size*.40,-size*.48);
-    ctx.quadraticCurveTo(-size*.27,-size*.34,-size*.18,-size*.10);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(size*.28,-size*.05);
-    ctx.quadraticCurveTo(size*.48,-size*.25,size*.40,-size*.48);
-    ctx.quadraticCurveTo(size*.27,-size*.34,size*.18,-size*.10);
-    ctx.fill();
-
-    // Face opening
-    ctx.fillStyle="#17120e";
-    ctx.fillRect(-size*.22,size*.06,size*.44,size*.12);
-
-    ctx.restore();
-}
-
-function drawIngot(ctx,x,y,size){
-    const px=x+size*.2;
-    const py=y+size*.32;
-    const w=size*.6;
-    const h=size*.35;
-
-    ctx.save();
-
-    ctx.fillStyle="#b9b6a7";
-    ctx.strokeStyle="#29251f";
-    ctx.lineWidth=2;
-
-    ctx.beginPath();
-    ctx.moveTo(px,py+h*.2);
-    ctx.lineTo(px+w*.2,py);
-    ctx.lineTo(px+w,py+h*.12);
-    ctx.lineTo(px+w*.82,py+h);
-    ctx.lineTo(px+w*.18,py+h*.9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle="rgba(255,255,255,.28)";
-    ctx.beginPath();
-    ctx.moveTo(px+w*.22,py+h*.18);
-    ctx.lineTo(px+w*.75,py+h*.28);
-    ctx.stroke();
-
-    ctx.restore();
-}
-
-function drawSnake(){
-    const rect=snakeBoard.getBoundingClientRect();
-    if(!rect.width || !rect.height) return;
-
-    const cellW=rect.width/SNAKE_COLS;
-    const cellH=rect.height/SNAKE_ROWS;
-
-    snakeCtx.clearRect(0,0,rect.width,rect.height);
-
-    // Dark game arena and subtle grid.
-    snakeCtx.fillStyle="#0b0907";
-    snakeCtx.fillRect(0,0,rect.width,rect.height);
-
-    snakeCtx.strokeStyle="rgba(205,170,95,.055)";
-    snakeCtx.lineWidth=1;
-    for(let gx=1;gx<SNAKE_COLS;gx++){
-        const x=gx*cellW;
-        snakeCtx.beginPath();
-        snakeCtx.moveTo(x,0);
-        snakeCtx.lineTo(x,rect.height);
-        snakeCtx.stroke();
-    }
-    for(let gy=1;gy<SNAKE_ROWS;gy++){
-        const y=gy*cellH;
-        snakeCtx.beginPath();
-        snakeCtx.moveTo(0,y);
-        snakeCtx.lineTo(rect.width,y);
-        snakeCtx.stroke();
+        snakeCtx.setTransform(dpr,0,0,dpr,0,0);
+        drawSnake();
     }
 
-    // Food.
-    drawIngot(
-        snakeCtx,
-        snakeFood.x*cellW,
-        snakeFood.y*cellH,
-        Math.min(cellW,cellH)
-    );
+    function placeFood(){
+        let tries=0;
 
-    // Snake.
-    snake.forEach((part,index)=>{
-        const x=part.x*cellW;
-        const y=part.y*cellH;
+        do{
+            food={
+                x:Math.floor(Math.random()*COLS),
+                y:Math.floor(Math.random()*ROWS)
+            };
+            tries++;
+        }while(
+            snake.some(p=>p.x===food.x && p.y===food.y) &&
+            tries<500
+        );
+    }
+
+    function resetSnake(){
+        clearInterval(timer);
+        timer=null;
+        running=false;
+
+        snake=[
+            {x:8,y:8},
+            {x:7,y:8},
+            {x:6,y:8},
+            {x:5,y:8}
+        ];
+
+        direction={x:1,y:0};
+        nextDirection={x:1,y:0};
+        score=0;
+        speed=1;
+
+        snakeScoreEl.textContent="0";
+        snakeSpeedEl.textContent="1";
+        snakeGoalEl.textContent="0";
+
+        placeFood();
+        resizeSnake();
+    }
+
+    function drawHelmet(ctx,x,y,size){
+        const cx=x+size/2;
+        const cy=y+size/2;
+
+        ctx.save();
+        ctx.translate(cx,cy);
+
+        ctx.fillStyle="#9d8a61";
+        ctx.strokeStyle="#241d15";
+        ctx.lineWidth=2;
+
+        ctx.beginPath();
+        ctx.arc(0,2,size*.34,Math.PI,0);
+        ctx.lineTo(size*.30,size*.25);
+        ctx.lineTo(size*.22,size*.38);
+        ctx.lineTo(-size*.22,size*.38);
+        ctx.lineTo(-size*.30,size*.25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(-size*.28,-size*.05);
+        ctx.quadraticCurveTo(-size*.48,-size*.25,-size*.40,-size*.48);
+        ctx.quadraticCurveTo(-size*.27,-size*.34,-size*.18,-size*.10);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(size*.28,-size*.05);
+        ctx.quadraticCurveTo(size*.48,-size*.25,size*.40,-size*.48);
+        ctx.quadraticCurveTo(size*.27,-size*.34,size*.18,-size*.10);
+        ctx.fill();
+
+        ctx.fillStyle="#17120e";
+        ctx.fillRect(-size*.22,size*.06,size*.44,size*.12);
+
+        ctx.restore();
+    }
+
+    function drawIngot(ctx,x,y,size){
+        const px=x+size*.2;
+        const py=y+size*.32;
+        const w=size*.6;
+        const h=size*.35;
+
+        ctx.save();
+        ctx.fillStyle="#b9b6a7";
+        ctx.strokeStyle="#29251f";
+        ctx.lineWidth=2;
+
+        ctx.beginPath();
+        ctx.moveTo(px,py+h*.2);
+        ctx.lineTo(px+w*.2,py);
+        ctx.lineTo(px+w,py+h*.12);
+        ctx.lineTo(px+w*.82,py+h);
+        ctx.lineTo(px+w*.18,py+h*.9);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawSnake(){
+        const rect=snakeBoard.getBoundingClientRect();
+        if(rect.width<=0 || rect.height<=0) return;
+
+        const cellW=rect.width/COLS;
+        const cellH=rect.height/ROWS;
         const size=Math.min(cellW,cellH);
 
-        if(index===0){
-            drawHelmet(snakeCtx,x,y,size);
-        }else{
-            snakeCtx.fillStyle=index%2 ? "#75664a" : "#66583f";
-            snakeCtx.strokeStyle="#2b241a";
-            snakeCtx.lineWidth=2;
+        snakeCtx.clearRect(0,0,rect.width,rect.height);
 
+        snakeCtx.fillStyle="#0b0907";
+        snakeCtx.fillRect(0,0,rect.width,rect.height);
+
+        snakeCtx.strokeStyle="rgba(205,170,95,.055)";
+        snakeCtx.lineWidth=1;
+
+        for(let x=1;x<COLS;x++){
             snakeCtx.beginPath();
-            snakeCtx.roundRect(
-                x+size*.12,
-                y+size*.16,
-                size*.76,
-                size*.68,
-                size*.16
-            );
-            snakeCtx.fill();
+            snakeCtx.moveTo(x*cellW,0);
+            snakeCtx.lineTo(x*cellW,rect.height);
             snakeCtx.stroke();
         }
-    });
-}
 
-function setSnakeDirection(x,y){
-    if(!snakeRunning) return;
-
-    // Prevent an immediate 180-degree turn.
-    if(x===-snakeDir.x && y===-snakeDir.y) return;
-
-    snakeNextDir={x,y};
-}
-
-function snakeStep(){
-    snakeDir=snakeNextDir;
-
-    const head=snake[0];
-
-    const next={
-        x:head.x+snakeDir.x,
-        y:head.y+snakeDir.y
-    };
-
-    if(
-        next.x<0 ||
-        next.x>=SNAKE_COLS ||
-        next.y<0 ||
-        next.y>=SNAKE_ROWS
-    ){
-        endSnake();
-        return;
-    }
-
-    const eating =
-        next.x===snakeFood.x &&
-        next.y===snakeFood.y;
-
-    const bodyToCheck=eating ? snake : snake.slice(0,-1);
-
-    if(
-        bodyToCheck.some(part=>part.x===next.x && part.y===next.y)
-    ){
-        endSnake();
-        return;
-    }
-
-    snake.unshift(next);
-
-    if(eating){
-        snakeScore++;
-        snakeSpeed=Math.min(8,1+Math.floor(snakeScore/4));
-
-        snakeScoreEl.textContent=snakeScore;
-        snakeGoalEl.textContent=snakeScore;
-        snakeSpeedEl.textContent=snakeSpeed;
-
-        if(snakeScore>snakeBest){
-            snakeBest=snakeScore;
-            localStorage.setItem("skyrimSerpentBest",snakeBest);
-            snakeBestEl.textContent=snakeBest;
-            snakeBestSideEl.textContent=snakeBest;
+        for(let y=1;y<ROWS;y++){
+            snakeCtx.beginPath();
+            snakeCtx.moveTo(0,y*cellH);
+            snakeCtx.lineTo(rect.width,y*cellH);
+            snakeCtx.stroke();
         }
 
-        randomSnakeFood();
-        restartSnakeTimer();
-    }else{
-        snake.pop();
+        drawIngot(
+            snakeCtx,
+            food.x*cellW,
+            food.y*cellH,
+            size
+        );
+
+        snake.forEach((part,index)=>{
+            const x=part.x*cellW;
+            const y=part.y*cellH;
+
+            if(index===0){
+                drawHelmet(snakeCtx,x,y,size);
+            }else{
+                snakeCtx.fillStyle=index%2 ? "#75664a" : "#66583f";
+                snakeCtx.strokeStyle="#2b241a";
+                snakeCtx.lineWidth=2;
+
+                snakeCtx.beginPath();
+                if(typeof snakeCtx.roundRect==="function"){
+                    snakeCtx.roundRect(
+                        x+size*.12,
+                        y+size*.16,
+                        size*.76,
+                        size*.68,
+                        size*.16
+                    );
+                }else{
+                    snakeCtx.rect(
+                        x+size*.12,
+                        y+size*.16,
+                        size*.76,
+                        size*.68
+                    );
+                }
+                snakeCtx.fill();
+                snakeCtx.stroke();
+            }
+        });
     }
 
-    drawSnake();
+    function setDirection(x,y){
+        if(!running) return;
+        if(x===-direction.x && y===-direction.y) return;
+        nextDirection={x,y};
+    }
+
+    function stopSnake(){
+        running=false;
+        clearInterval(timer);
+        timer=null;
+    }
+
+    function snakeStep(){
+        direction=nextDirection;
+
+        const head=snake[0];
+        const next={
+            x:head.x+direction.x,
+            y:head.y+direction.y
+        };
+
+        if(
+            next.x<0 || next.x>=COLS ||
+            next.y<0 || next.y>=ROWS
+        ){
+            stopSnake();
+            drawSnake();
+            return;
+        }
+
+        const eating=next.x===food.x && next.y===food.y;
+        const body=eating ? snake : snake.slice(0,-1);
+
+        if(body.some(p=>p.x===next.x && p.y===next.y)){
+            stopSnake();
+            drawSnake();
+            return;
+        }
+
+        snake.unshift(next);
+
+        if(eating){
+            score++;
+            speed=Math.min(8,1+Math.floor(score/4));
+
+            snakeScoreEl.textContent=score;
+            snakeGoalEl.textContent=score;
+            snakeSpeedEl.textContent=speed;
+
+            if(score>best){
+                best=score;
+                localStorage.setItem("skyrimSerpentBest",best);
+                snakeBestEl.textContent=best;
+                snakeBestSideEl.textContent=best;
+            }
+
+            placeFood();
+        }else{
+            snake.pop();
+        }
+
+        drawSnake();
+
+        clearInterval(timer);
+        timer=setInterval(snakeStep,Math.max(85,220-(speed-1)*16));
+    }
+
+    function startSnake(){
+        if(running) return;
+        running=true;
+        clearInterval(timer);
+        timer=setInterval(snakeStep,220);
+    }
+
+    snakeStartBtn.addEventListener("click",startSnake);
+    snakeResetBtn.addEventListener("click",resetSnake);
+
+    document.addEventListener("keydown",e=>{
+        if(e.key==="ArrowUp" || e.key.toLowerCase()==="w"){
+            e.preventDefault();
+            setDirection(0,-1);
+        }else if(e.key==="ArrowDown" || e.key.toLowerCase()==="s"){
+            e.preventDefault();
+            setDirection(0,1);
+        }else if(e.key==="ArrowLeft" || e.key.toLowerCase()==="a"){
+            e.preventDefault();
+            setDirection(-1,0);
+        }else if(e.key==="ArrowRight" || e.key.toLowerCase()==="d"){
+            e.preventDefault();
+            setDirection(1,0);
+        }
+    });
+
+    snakeBoard.addEventListener("touchstart",e=>{
+        const t=e.changedTouches[0];
+        touchStart={x:t.clientX,y:t.clientY};
+    },{passive:true});
+
+    snakeBoard.addEventListener("touchend",e=>{
+        if(!touchStart) return;
+
+        const t=e.changedTouches[0];
+        const dx=t.clientX-touchStart.x;
+        const dy=t.clientY-touchStart.y;
+        touchStart=null;
+
+        if(Math.max(Math.abs(dx),Math.abs(dy))<25) return;
+
+        if(Math.abs(dx)>Math.abs(dy)){
+            setDirection(dx>0 ? 1 : -1,0);
+        }else{
+            setDirection(0,dy>0 ? 1 : -1);
+        }
+    },{passive:true});
+
+    window.addEventListener("resize",resizeSnake);
+
+    resetSnake();
+
+    requestAnimationFrame(()=>{
+        resizeSnake();
+    });
 }
-
-function restartSnakeTimer(){
-    clearInterval(snakeTimer);
-
-    const delay=Math.max(85,220-(snakeSpeed-1)*16);
-
-    snakeTimer=setInterval(snakeStep,delay);
-}
-
-function startSnake(){
-    if(snakeRunning) return;
-
-    snakeRunning=true;
-    restartSnakeTimer();
-}
-
-function endSnake(){
-    snakeRunning=false;
-    clearInterval(snakeTimer);
-    drawSnake();
-}
-
-snakeStartBtn.addEventListener("click",()=>{
-    if(!snakeRunning) startSnake();
-});
-
-snakeResetBtn.addEventListener("click",resetSnake);
-
-document.addEventListener("keydown",e=>{
-    const key=e.key.toLowerCase();
-
-    if(key==="arrowup" || key==="w"){
-        e.preventDefault();
-        setSnakeDirection(0,-1);
-    }
-    if(key==="arrowdown" || key==="s"){
-        e.preventDefault();
-        setSnakeDirection(0,1);
-    }
-    if(key==="arrowleft" || key==="a"){
-        e.preventDefault();
-        setSnakeDirection(-1,0);
-    }
-    if(key==="arrowright" || key==="d"){
-        e.preventDefault();
-        setSnakeDirection(1,0);
-    }
-});
-
-let touchStart=null;
-
-snakeBoard.addEventListener("touchstart",e=>{
-    const t=e.changedTouches[0];
-    touchStart={x:t.clientX,y:t.clientY};
-},{passive:true});
-
-snakeBoard.addEventListener("touchend",e=>{
-    if(!touchStart) return;
-
-    const t=e.changedTouches[0];
-    const dx=t.clientX-touchStart.x;
-    const dy=t.clientY-touchStart.y;
-
-    touchStart=null;
-
-    if(Math.max(Math.abs(dx),Math.abs(dy))<25) return;
-
-    if(Math.abs(dx)>Math.abs(dy)){
-        setSnakeDirection(dx>0 ? 1 : -1,0);
-    }else{
-        setSnakeDirection(0,dy>0 ? 1 : -1);
-    }
-},{passive:true});
-
-window.addEventListener("resize",resizeSnakeCanvas);
-
-resetSnake();
-resizeSnakeCanvas();
-
-window.addEventListener("orientationchange",()=>{
-    setTimeout(resizeSnakeCanvas,150);
-});
-
-snakeCanvas.addEventListener("click",()=>{
-    if(!snakeRunning) startSnake();
-});
 
 /* ============================================================
    INITIALIZE
