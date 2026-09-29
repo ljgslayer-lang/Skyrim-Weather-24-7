@@ -4744,25 +4744,9 @@ const encounterSpots = [
     {x:720,y:480,type:"wolf",name:"Wolf Pack"},{x:1740,y:610,type:"dragonpriest",name:"Dragon Priest"}
 ];
 
-let activeEncounters = [];
+let activeEncounters=[];
 
-/* Keep encounter markers away from the map-life markers.  The map uses
-   one coordinate system, so a single minimum distance works at every zoom. */
-const FIXED_LIFE_POINTS = [
-    [1240,730],[1320,690],[1510,720],[920,450],
-    [1130,930],[2310,580],[2380,910],[1980,530]
-];
-const ENCOUNTER_MIN_DISTANCE = 58;
-
-function pointDistance(ax,ay,bx,by){
-    return Math.hypot(ax-bx,ay-by);
-}
-
-function tooCloseToLife(x,y){
-    return FIXED_LIFE_POINTS.some(([lx,ly]) =>
-        pointDistance(x,y,lx,ly) < ENCOUNTER_MIN_DISTANCE
-    );
-}
+function pointDistance(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
 
 function clearEncounters(){
     encounterLayer.innerHTML="";
@@ -4771,116 +4755,38 @@ function clearEncounters(){
 
 function spawnEncounters(){
     clearEncounters();
-
-    const count = 10;
-    const shuffled = [...encounterSpots].sort(()=>Math.random()-.5);
     const chosen=[];
+    const shuffled=[...encounterSpots].sort(()=>Math.random()-.5);
 
     for(const spot of shuffled){
-        if(tooCloseToLife(spot.x,spot.y)) continue;
-
-        /* Also keep encounter dots separated from each other. */
-        if(chosen.some(other =>
-            pointDistance(spot.x,spot.y,other.x,other.y) < 85
-        )) continue;
-
+        if(chosen.some(o=>pointDistance(spot.x,spot.y,o.x,o.y)<85)) continue;
         chosen.push(spot);
-        if(chosen.length >= count) break;
+        if(chosen.length>=10) break;
     }
 
-    chosen.forEach((spot)=>{
-    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
-    const cls =
-        spot.type==="giant" ? "encounter-dot giant" :
-        spot.type==="mammoth" ? "encounter-dot mammoth" :
-        spot.type==="dragon" ? "encounter-dot dragon" :
-        spot.type==="troll" || spot.type==="frosttroll" ? "encounter-dot troll" :
-        spot.type==="sabre" || spot.type==="snowbear" || spot.type==="icewolf" || spot.type==="wolf" ? "encounter-dot beast" :
-        spot.type==="hagraven" || spot.type==="spriggan" || spot.type==="wispmother" || spot.type==="dragonpriest" ? "encounter-dot magic" :
-        spot.type==="falmer" || spot.type==="chaurus" || spot.type==="vampire" || spot.type==="werewolf" ? "encounter-dot dark" :
-        "encounter-dot";
-    const radius=spot.type==="dragon"?13:(spot.type==="giant"||spot.type==="mammoth"?10:(spot.type==="troll"||spot.type==="frosttroll"?9:7));
-    g.innerHTML=`<circle class="${cls}" cx="${spot.x}" cy="${spot.y}" r="${radius}"></circle><text class="encounter-label" x="${spot.x+13}" y="${spot.y+4}">${spot.name}</text>`;
-    encounterLayer.appendChild(g);
-    activeEncounters.push({node:g,x:spot.x,y:spot.y});
-});
-
-let activeEncounters = [];
-
-/* Keep encounter markers away from the map-life markers.  The map uses
-   one coordinate system, so a single minimum distance works at every zoom. */
-const FIXED_LIFE_POINTS = [
-    [1240,730],[1320,690],[1510,720],[920,450],
-    [1130,930],[2310,580],[2380,910],[1980,530]
-];
-const ENCOUNTER_MIN_DISTANCE = 58;
-
-function pointDistance(ax,ay,bx,by){
-    return Math.hypot(ax-bx,ay-by);
-}
-
-function tooCloseToLife(x,y){
-    return FIXED_LIFE_POINTS.some(([lx,ly]) =>
-        pointDistance(x,y,lx,ly) < ENCOUNTER_MIN_DISTANCE
-    );
-}
-
-function clearEncounters(){
-    encounterLayer.innerHTML="";
-    activeEncounters=[];
-}
-
-function spawnEncounters(){
-    clearEncounters();
-
-    const count = 10;
-    const shuffled = [...encounterSpots].sort(()=>Math.random()-.5);
-    const chosen=[];
-
-    for(const spot of shuffled){
-        if(tooCloseToLife(spot.x,spot.y)) continue;
-
-        /* Also keep encounter dots separated from each other. */
-        if(chosen.some(other =>
-            pointDistance(spot.x,spot.y,other.x,other.y) < 85
-        )) continue;
-
-        chosen.push(spot);
-        if(chosen.length >= count) break;
-    }
-
-    chosen.forEach((spot,i)=>{
+    chosen.forEach(spot=>{
         const g=document.createElementNS("http://www.w3.org/2000/svg","g");
         const cls =
+            spot.type==="dragon" ? "encounter-dot dragon" :
             spot.type==="giant" ? "encounter-dot giant" :
-            spot.type==="troll" || spot.type==="frost" ? "encounter-dot troll" :
-            spot.type==="wolf" || spot.type==="sabre" ? "encounter-dot beast" :
-            spot.type==="skeever" ? "encounter-dot skeever" :
-            spot.type==="hagraven" || spot.type==="necromancer" ? "encounter-dot magic" :
+            spot.type==="mammoth" ? "encounter-dot mammoth" :
+            spot.type==="troll" || spot.type==="frosttroll" ? "encounter-dot troll" :
+            spot.type==="sabre" || spot.type==="snowbear" || spot.type==="icewolf" || spot.type==="wolf" ? "encounter-dot beast" :
+            spot.type==="hagraven" || spot.type==="spriggan" || spot.type==="wispmother" || spot.type==="dragonpriest" ? "encounter-dot magic" :
+            spot.type==="falmer" || spot.type==="chaurus" || spot.type==="vampire" || spot.type==="werewolf" ? "encounter-dot dark" :
             "encounter-dot";
-        const radius =
-            spot.type==="giant" || spot.type==="troll" || spot.type==="frost" ? 9 :
-            spot.type==="beast" ? 7 : 6;
-
-        g.innerHTML=`
-            <circle class="${cls}" cx="${spot.x}" cy="${spot.y}" r="${radius}"></circle>
-            <text class="encounter-label" x="${spot.x+12}" y="${spot.y+4}">${spot.name}</text>
-        `;
-
+        const radius=spot.type==="dragon"?13:(spot.type==="giant"||spot.type==="mammoth"?10:(spot.type==="troll"||spot.type==="frosttroll"?9:7));
+        g.innerHTML=`<circle class="${cls}" cx="${spot.x}" cy="${spot.y}" r="${radius}"></circle><text class="encounter-label" x="${spot.x+13}" y="${spot.y+4}">${spot.name}</text>`;
         encounterLayer.appendChild(g);
-        activeEncounters.push({node:g, x:spot.x, y:spot.y});
-
-        // Encounter markers stay fixed on the map.
-        g.style.transform="none";
+        activeEncounters.push({node:g,x:spot.x,y:spot.y});
     });
 }
 
 spawnEncounters();
-setInterval(spawnEncounters, 300000);
+setInterval(spawnEncounters,300000);
 
 
-/* ============================================================
-   SKYRIM MINI-GAME — COURIER RUN
+SKYRIM MINI-GAME — COURIER RUN
    Stable version: self-contained and safe if the page is resized.
 ============================================================ */
 
