@@ -3006,6 +3006,10 @@ h1,h2,h3{
 
 /* ---------- TORCH ALIGNMENT ---------- */
 .wall-torch{
+    position:fixed !important;
+    top:88px !important;
+    inset-block-start:88px !important;
+    bottom:auto !important;
     display:block !important;
     transform:none !important;
     overflow:visible !important;
@@ -4664,8 +4668,27 @@ shipGraphic.innerHTML = `
 `;
 shipSvgLayer.appendChild(shipGraphic);
 
-const windhelmPort = {x:2198,y:545};
-const solstheimPort = {x:2700,y:390};
+const windhelmPort={x:2198,y:545};
+const solstheimPort={x:2700,y:390};
+
+const shipSeaRoute=[
+    windhelmPort,
+    {x:2285,y:515},
+    {x:2380,y:455},
+    {x:2490,y:370},
+    {x:2600,y:335},
+    solstheimPort
+];
+
+function shipRoutePoint(progress){
+    const p=Math.max(0,Math.min(1,progress));
+    const scaled=p*(shipSeaRoute.length-1);
+    const i=Math.min(shipSeaRoute.length-2,Math.floor(scaled));
+    const t=scaled-i;
+    const eased=t*t*(3-2*t);
+    const a=shipSeaRoute[i],b=shipSeaRoute[i+1];
+    return {x:a.x+(b.x-a.x)*eased,y:a.y+(b.y-a.y)*eased};
+}
 
 function shipState(now=Date.now()){
     const elapsed = ((now - shipStart) % SHIP_CYCLE + SHIP_CYCLE) % SHIP_CYCLE;
@@ -4700,9 +4723,10 @@ function updateTradeShip(){
     shipNextEl.textContent = clock;
 
     if(state.departing){
-        const x = windhelmPort.x + (solstheimPort.x-windhelmPort.x)*state.progress;
-        const y = windhelmPort.y + (solstheimPort.y-windhelmPort.y)*state.progress;
-        shipGraphic.setAttribute("transform",`translate(${x},${y}) rotate(-8)`);
+        const p=shipRoutePoint(state.progress);
+        const ahead=shipRoutePoint(Math.min(1,state.progress+0.01));
+        const angle=Math.atan2(ahead.y-p.y,ahead.x-p.x)*180/Math.PI;
+        shipGraphic.setAttribute("transform",`translate(${p.x},${p.y}) rotate(${angle})`);
         shipGraphic.style.display="block";
         shipProgressEl.style.width = `${state.progress*100}%`;
         shipStatusEl.textContent = "At sea — crossing to Solstheim";
