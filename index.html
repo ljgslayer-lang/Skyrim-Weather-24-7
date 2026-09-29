@@ -4675,50 +4675,37 @@ const lifeLayer = document.getElementById("lifeLayer");
 
 function addLifeDot(x,y,cls,label){
     const g=document.createElementNS("http://www.w3.org/2000/svg","g");
-    g.innerHTML=`<circle class="life-dot ${cls||""}" cx="${x}" cy="${y}" r="5"></circle>` + (label ? `<text class="life-label" x="${x+9}" y="${y+5}">${label}</text>` : "");
+    g.innerHTML=`<circle class="life-dot ${cls||""}" cx="${x}" cy="${y}" r="5"></circle><text class="life-label" x="${x+9}" y="${y+5}">${label||""}</text>`;
     lifeLayer.appendChild(g);
     return g;
 }
 
-[
-    [1240,730,"guard-dot","Guard Patrol"],
-    [1320,690,"life-dot","Traveler"],
-    [1510,720,"wildlife-dot","Deer"],
-    [920,450,"life-dot","Traveler"],
-    [1130,930,"wildlife-dot","Wolf Pack"],
-    [2310,580,"guard-dot","Windhelm Guard"],
-    [2380,910,"life-dot","Merchant"],
-    [1980,530,"wildlife-dot","Wildlife"]
-].forEach(v=>addLifeDot(...v));
-
-// Small moving caravans on approximate routes; these are activity markers, not geography.
-const caravanRoutes=[
-    {a:[1160,690],b:[1360,660],speed:0.000035,label:"Whiterun Caravan"},
-    {a:[2198,545],b:[2380,900],speed:0.00003,label:"Eastmarch Caravan"},
-    {a:[1020,980],b:[1180,820],speed:0.000028,label:"Falkreath Caravan"}
+const roamingCreatures=[
+    {a:[1160,690],b:[1420,760],label:"Wolf Pack",cls:"wildlife-dot",speed:0.000045},
+    {a:[1580,380],b:[1780,520],label:"Mammoth",cls:"wildlife-dot",speed:0.000022},
+    {a:[1760,760],b:[2050,860],label:"Giant",cls:"wildlife-dot",speed:0.000018},
+    {a:[720,1120],b:[980,1240],label:"Sabre Cat",cls:"wildlife-dot",speed:0.000032},
+    {a:[880,430],b:[1080,560],label:"Frost Troll",cls:"wildlife-dot",speed:0.000025},
+    {a:[2240,1080],b:[2470,1210],label:"Ice Wraith",cls:"wildlife-dot",speed:0.000035},
+    {a:[1880,1120],b:[2120,1260],label:"Spriggan",cls:"wildlife-dot",speed:0.000027}
 ];
-const caravanDots=caravanRoutes.map(r=>{
-    const g=addLifeDot(r.a[0],r.a[1],"life-dot",r.label);
-    return {g,...r,t:Math.random()};
+
+const roamingDots=roamingCreatures.map(c=>{
+    const g=addLifeDot(c.a[0],c.a[1],c.cls,c.label);
+    return {...c,g,t:Math.random()};
 });
-const CARAVAN_TRAVEL_TIME = 1200000; // 20 minutes per route
-const caravanStart = Date.now();
+
+const ROAM_TIME=900000;
+const roamStart=Date.now();
 
 function animateLife(){
     const now=Date.now();
-    caravanDots.forEach(c=>{
-        const p=((now-caravanStart+c.t*CARAVAN_TRAVEL_TIME)%CARAVAN_TRAVEL_TIME)/CARAVAN_TRAVEL_TIME;
-        const eased = p < .5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+    roamingDots.forEach(c=>{
+        const p=((now-roamStart+c.t*ROAM_TIME)%ROAM_TIME)/ROAM_TIME;
+        const eased=p<.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
         const x=c.a[0]+(c.b[0]-c.a[0])*eased;
         const y=c.a[1]+(c.b[1]-c.a[1])*eased;
         c.g.setAttribute("transform",`translate(${x-c.a[0]},${y-c.a[1]})`);
-
-        /* Never let a moving caravan visually sit on top of an encounter dot.
-           It temporarily fades the caravan while passing the encounter zone. */
-        const nearEncounter = activeEncounters.some(e =>
-            pointDistance(x,y,e.x,e.y) < 62
-        );
-        c.g.style.visibility = nearEncounter ? "hidden" : "visible";
     });
     requestAnimationFrame(animateLife);
 }
@@ -4727,6 +4714,9 @@ animateLife();
 
 /* ============================================================
    OCCASIONAL ROAD ENCOUNTERS
+============================================================ */
+
+
 ============================================================ */
 
 const encounterLayer = document.getElementById("encounterLayer");
