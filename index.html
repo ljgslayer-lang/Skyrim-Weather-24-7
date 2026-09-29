@@ -223,6 +223,27 @@ header p{
         linear-gradient(135deg,#8d8b83,#b5b0a0);
 }
 
+.map-night-overlay{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    opacity:0;background:rgba(4,7,16,.62);mix-blend-mode:multiply;
+    transition:opacity 1.2s ease,background 1.2s ease;
+}
+.map-night-overlay:after{
+    content:"";position:absolute;inset:0;opacity:0;
+    background:
+        radial-gradient(ellipse at 24% 28%,rgba(92,205,184,.20),transparent 20%),
+        radial-gradient(ellipse at 48% 18%,rgba(116,190,224,.16),transparent 24%),
+        radial-gradient(ellipse at 78% 30%,rgba(72,170,193,.14),transparent 22%);
+    filter:blur(18px);animation:auroraDrift 12s ease-in-out infinite alternate;
+    transition:opacity 1.2s ease;
+}
+.map-night-overlay.active{opacity:1}
+.map-night-overlay.active:after{opacity:1}
+@keyframes auroraDrift{
+    from{transform:translateX(-2%) scale(1.02);filter:blur(18px)}
+    to{transform:translateX(2%) scale(1.06);filter:blur(24px)}
+}
+
 .map-fallback:before{
     content:"SKYRIM";
     position:absolute;
@@ -3345,6 +3366,7 @@ h1,h2,h3{
             >
 
             <div class="map-fallback" id="mapFallback"></div>
+            <div class="map-night-overlay" id="mapNightOverlay" aria-hidden="true"></div>
 
             <svg
                 class="map-overlay"
@@ -4080,7 +4102,37 @@ function rotateEvent(){
 rotateEvent();
 setInterval(rotateEvent,30000);
 
-document.getElementById("eventNow").onclick = rotateEvent;
+document.getElementById("eventNow").onclick = triggerLiveEvent;
+
+/* Simple live-map events */
+const liveEvents=[
+    {text:"Dragon sighted over Whiterun.",city:"Whiterun",coords:[1360,660]},
+    {text:"A caravan is under guard near Riften.",city:"Riften",coords:[2449,990]},
+    {text:"A blizzard is closing roads near Winterhold.",city:"Winterhold",coords:[2035,260]},
+    {text:"Imperial patrol activity reported near Solitude.",city:"Solitude",coords:[826,361]},
+    {text:"Hunters report a dangerous beast near Falkreath.",city:"Falkreath",coords:[1088,1000]},
+    {text:"Strange lights are visible near Morthal.",city:"Morthal",coords:[984,526]},
+    {text:"Miners report unusual movement near Markarth.",city:"Markarth",coords:[157,1080]},
+    {text:"A ship has departed Windhelm for Solstheim.",city:"Windhelm",coords:[2198,490]}
+];
+
+function triggerLiveEvent(){
+    const e=liveEvents[Math.floor(Math.random()*liveEvents.length)];
+    addEvent(e.text);
+    selectCity(e.city,true);
+
+    const layer=document.getElementById("encounterLayer");
+    if(layer){
+        const old=document.getElementById("liveEventMarker");
+        if(old) old.remove();
+        const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+        g.id="liveEventMarker";
+        g.innerHTML=`<circle cx="${e.coords[0]}" cy="${e.coords[1]}" r="22" fill="none" stroke="#e8c96f" stroke-width="6" opacity=".95"><animate attributeName="r" values="12;28;12" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.25;1" dur="1.4s" repeatCount="indefinite"/></circle><text x="${e.coords[0]+30}" y="${e.coords[1]+5}" class="encounter-label">LIVE EVENT</text>`;
+        layer.appendChild(g);
+        setTimeout(()=>g.remove(),20000);
+    }
+}
+
 
 /* ============================================================
    WEATHER PARTICLES
@@ -4221,6 +4273,18 @@ function pad(n){
     return String(n).padStart(2,"0");
 }
 
+let forceNightStyle = false;
+
+function updateNightVisual(){
+    const hour = Math.floor(skyrimMinutes/60);
+    const naturalNight = hour>=20 || hour<6;
+    const night = forceNightStyle || naturalNight;
+    setText("dayState",forceNightStyle ? "Night — Forced" : (night ? "Night" : "Daylight"));
+    document.body.classList.toggle("night",night);
+    const overlay=document.getElementById("mapNightOverlay");
+    if(overlay) overlay.classList.toggle("active",night);
+}
+
 function updateSkyrimClock(){
     skyrimMinutes += 10;
 
@@ -4246,11 +4310,7 @@ function updateSkyrimClock(){
         `${skyrimDay}${ordinal(skyrimDay)} ${skyrimMonths[skyrimMonth]}, 4E 201 — ${pad(hour)}:${pad(minute)}`
     );
 
-    const daylight = hour>=6 && hour<20;
-
-    setText("dayState",daylight ? "Daylight" : "Night");
-
-    document.body.classList.toggle("night",!daylight);
+    updateNightVisual();
 }
 
 function ordinal(n){
