@@ -2502,6 +2502,9 @@ h1,h2,h3{
     stroke:#24150f !important;
 }
 
+.encounter-dot.mammoth{fill:#756044;stroke:#251b12}
+.encounter-dot.dragon{fill:#b46b36;stroke:#32140d;stroke-width:5;filter:drop-shadow(0 0 7px rgba(190,85,35,.75))}
+.encounter-dot.dark{fill:#4d405d;stroke:#160f1d}
 .encounter-dot.magic{
     fill:#765c9b !important;
     stroke:#180f24 !important;
@@ -3806,7 +3809,7 @@ let startOffsetY = 0;
 
 function updateMap(){
     world.style.transform =
-        `translate(calc(-50% + ${offsetX}px),calc(-50% + ${offsetY}px)) scale(${scale})`;
+        `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 }
 
 function zoomMap(multiplier){
@@ -4729,26 +4732,16 @@ animateLife();
 const encounterLayer = document.getElementById("encounterLayer");
 
 const encounterSpots = [
-    {x:1190,y:700,type:"bandit",name:"Bandit"},
-    {x:1540,y:620,type:"bandit",name:"Bandit"},
-    {x:1775,y:820,type:"giant",name:"Giant"},
-    {x:2070,y:535,type:"bandit",name:"Bandit"},
-    {x:2260,y:705,type:"giant",name:"Giant"},
-    {x:1320,y:900,type:"bandit",name:"Bandit"},
-    {x:1050,y:935,type:"bandit",name:"Bandit"},
-    {x:1880,y:1000,type:"bandit",name:"Bandit"},
-
-    /* Ten new, widely separated wilderness encounters */
-    {x:610,y:780,type:"wolf",name:"Wolf Pack"},
-    {x:760,y:1210,type:"troll",name:"Troll"},
-    {x:950,y:1450,type:"sabre",name:"Sabre Cat"},
-    {x:1270,y:310,type:"skeever",name:"Skeever"},
-    {x:1710,y:350,type:"frost",name:"Frost Troll"},
-    {x:2390,y:350,type:"bandit",name:"Bandit Camp"},
-    {x:2660,y:760,type:"hagraven",name:"Hagraven"},
-    {x:2510,y:1260,type:"wolf",name:"Wolf Pack"},
-    {x:1740,y:1330,type:"giant",name:"Giant"},
-    {x:820,y:470,type:"necromancer",name:"Necromancer"}
+    {x:620,y:760,type:"icewraith",name:"Ice Wraith"},{x:790,y:1180,type:"troll",name:"Troll"},
+    {x:940,y:1450,type:"sabre",name:"Sabre Cat"},{x:1120,y:410,type:"hagraven",name:"Hagraven"},
+    {x:1270,y:300,type:"frosttroll",name:"Frost Troll"},{x:1510,y:520,type:"dragon",name:"Dragon Sighting"},
+    {x:1690,y:360,type:"mammoth",name:"Mammoth"},{x:1810,y:820,type:"giant",name:"Giant"},
+    {x:1930,y:1180,type:"spriggan",name:"Spriggan"},{x:2110,y:690,type:"werewolf",name:"Werewolf"},
+    {x:2290,y:360,type:"falmer",name:"Falmer"},{x:2410,y:620,type:"chaurus",name:"Chaurus"},
+    {x:2580,y:850,type:"vampire",name:"Vampire"},{x:2680,y:1160,type:"wispmother",name:"Wispmother"},
+    {x:2360,y:1360,type:"snowbear",name:"Snow Bear"},{x:2050,y:1460,type:"icewolf",name:"Ice Wolf"},
+    {x:1470,y:1370,type:"skeever",name:"Skeever Pack"},{x:1180,y:1010,type:"mudcrab",name:"Mudcrabs"},
+    {x:720,y:480,type:"wolf",name:"Wolf Pack"},{x:1740,y:610,type:"dragonpriest",name:"Dragon Priest"}
 ];
 
 let activeEncounters = [];
@@ -4779,7 +4772,68 @@ function clearEncounters(){
 function spawnEncounters(){
     clearEncounters();
 
-    const count = 8 + Math.floor(Math.random() * 4);
+    const count = 10;
+    const shuffled = [...encounterSpots].sort(()=>Math.random()-.5);
+    const chosen=[];
+
+    for(const spot of shuffled){
+        if(tooCloseToLife(spot.x,spot.y)) continue;
+
+        /* Also keep encounter dots separated from each other. */
+        if(chosen.some(other =>
+            pointDistance(spot.x,spot.y,other.x,other.y) < 85
+        )) continue;
+
+        chosen.push(spot);
+        if(chosen.length >= count) break;
+    }
+
+    chosen.forEach((spot)=>{
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    const cls =
+        spot.type==="giant" ? "encounter-dot giant" :
+        spot.type==="mammoth" ? "encounter-dot mammoth" :
+        spot.type==="dragon" ? "encounter-dot dragon" :
+        spot.type==="troll" || spot.type==="frosttroll" ? "encounter-dot troll" :
+        spot.type==="sabre" || spot.type==="snowbear" || spot.type==="icewolf" || spot.type==="wolf" ? "encounter-dot beast" :
+        spot.type==="hagraven" || spot.type==="spriggan" || spot.type==="wispmother" || spot.type==="dragonpriest" ? "encounter-dot magic" :
+        spot.type==="falmer" || spot.type==="chaurus" || spot.type==="vampire" || spot.type==="werewolf" ? "encounter-dot dark" :
+        "encounter-dot";
+    const radius=spot.type==="dragon"?13:(spot.type==="giant"||spot.type==="mammoth"?10:(spot.type==="troll"||spot.type==="frosttroll"?9:7));
+    g.innerHTML=`<circle class="${cls}" cx="${spot.x}" cy="${spot.y}" r="${radius}"></circle><text class="encounter-label" x="${spot.x+13}" y="${spot.y+4}">${spot.name}</text>`;
+    encounterLayer.appendChild(g);
+    activeEncounters.push({node:g,x:spot.x,y:spot.y});
+});
+
+let activeEncounters = [];
+
+/* Keep encounter markers away from the map-life markers.  The map uses
+   one coordinate system, so a single minimum distance works at every zoom. */
+const FIXED_LIFE_POINTS = [
+    [1240,730],[1320,690],[1510,720],[920,450],
+    [1130,930],[2310,580],[2380,910],[1980,530]
+];
+const ENCOUNTER_MIN_DISTANCE = 58;
+
+function pointDistance(ax,ay,bx,by){
+    return Math.hypot(ax-bx,ay-by);
+}
+
+function tooCloseToLife(x,y){
+    return FIXED_LIFE_POINTS.some(([lx,ly]) =>
+        pointDistance(x,y,lx,ly) < ENCOUNTER_MIN_DISTANCE
+    );
+}
+
+function clearEncounters(){
+    encounterLayer.innerHTML="";
+    activeEncounters=[];
+}
+
+function spawnEncounters(){
+    clearEncounters();
+
+    const count = 10;
     const shuffled = [...encounterSpots].sort(()=>Math.random()-.5);
     const chosen=[];
 
