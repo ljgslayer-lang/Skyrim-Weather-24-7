@@ -2471,39 +2471,59 @@ h1,h2,h3{
     cursor:pointer;
 }
 
-/* New encounter-dot palette */
+/* Skyrim encounter marker overhaul */
 .encounter-dot{
-    fill:#a53a2d !important;
-    stroke:#2b100c !important;
-    stroke-width:4px !important;
+    fill:#b84a32 !important;
+    stroke:#1b0f0a !important;
+    stroke-width:3px !important;
     filter:
-        drop-shadow(2px 2px 0 #120806)
-        drop-shadow(0 0 5px rgba(160,45,30,.32)) !important;
+        drop-shadow(0 0 3px rgba(255,190,100,.45))
+        drop-shadow(2px 2px 0 #080604) !important;
+    animation: encounterGlow 2.8s ease-in-out infinite;
 }
 
 .encounter-dot.giant{
-    fill:#907044 !important;
+    fill:#a98650 !important;
+    stroke:#24180d !important;
 }
 
 .encounter-dot.troll{
-    fill:#7f8060 !important;
+    fill:#78806c !important;
+    stroke:#172018 !important;
 }
 
 .encounter-dot.beast{
-    fill:#6f4932 !important;
+    fill:#704a35 !important;
+    stroke:#1b100a !important;
 }
 
 .encounter-dot.skeever{
-    fill:#8a6250 !important;
+    fill:#9b7560 !important;
+    stroke:#24150f !important;
 }
 
 .encounter-dot.magic{
-    fill:#765e82 !important;
+    fill:#765c9b !important;
+    stroke:#180f24 !important;
+    filter:
+        drop-shadow(0 0 5px rgba(150,100,255,.55))
+        drop-shadow(2px 2px 0 #080604) !important;
 }
 
-/* Pixel vines on the lower outside corners. */
-.pixel-vines{
-    position:fixed;
+@keyframes encounterGlow{
+    0%,100%{
+        opacity:.78;
+        filter:
+            drop-shadow(0 0 2px rgba(255,190,100,.3))
+            drop-shadow(2px 2px 0 #080604);
+    }
+    50%{
+        opacity:1;
+        filter:
+            drop-shadow(0 0 8px rgba(255,190,100,.7))
+            drop-shadow(2px 2px 0 #080604);
+    }
+}
     bottom:-5px;
     width:150px;
     height:235px;
