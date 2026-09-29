@@ -3300,6 +3300,247 @@ h1,h2,h3{
 }
 </style>
 
+
+<style id="skyrim-map-cartography-upgrade">
+/* ============================================================
+   SKYRIM CARTOGRAPHY + DYNAMIC WORLD
+   Uses the existing 3140x1950 map coordinates.
+============================================================ */
+
+.map-card{
+    background:
+        linear-gradient(rgba(255,248,219,.025),rgba(0,0,0,.18)),
+        #17130d !important;
+}
+
+.map-toolbar{
+    border-color:#9a7944 !important;
+    background:
+        linear-gradient(180deg,rgba(57,43,25,.97),rgba(18,14,9,.98)) !important;
+}
+
+.map-viewport{
+    background:
+        radial-gradient(circle at 50% 40%,#d8c48d 0,#8f7c56 72%,#3d3325 100%) !important;
+    border:3px solid #8e6e3d;
+    box-shadow:
+        inset 0 0 45px rgba(0,0,0,.62),
+        0 0 0 2px #0a0806;
+}
+
+.map-world{
+    box-shadow:
+        0 0 0 7px #241a0e,
+        0 0 0 10px #8d6c3b,
+        0 20px 45px rgba(0,0,0,.8);
+}
+
+.map-bg{
+    filter:
+        saturate(.82)
+        sepia(.12)
+        contrast(1.08)
+        brightness(.92);
+}
+
+.map-overlay{
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));
+}
+
+.map-cartography{
+    pointer-events:none;
+}
+
+.hold-label{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:29px;
+    font-weight:bold;
+    font-style:italic;
+    letter-spacing:2px;
+    fill:#302417;
+    opacity:.72;
+    paint-order:stroke;
+    stroke:#e7d5a2;
+    stroke-width:4px;
+}
+
+.hold-label-small{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:17px;
+    font-style:italic;
+    letter-spacing:1px;
+    fill:#4b3822;
+    opacity:.68;
+}
+
+.map-road{
+    fill:none;
+    stroke:#74552d;
+    stroke-width:9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    opacity:.62;
+}
+
+.map-road-minor{
+    fill:none;
+    stroke:#a27d49;
+    stroke-width:5;
+    stroke-dasharray:15 12;
+    stroke-linecap:round;
+    opacity:.48;
+}
+
+.map-river{
+    fill:none;
+    stroke:#527f8a;
+    stroke-width:13;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    opacity:.52;
+}
+
+.map-river-thin{
+    fill:none;
+    stroke:#7099a0;
+    stroke-width:6;
+    stroke-linecap:round;
+    opacity:.46;
+}
+
+.map-mountain{
+    fill:none;
+    stroke:#403528;
+    stroke-width:7;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    opacity:.38;
+}
+
+.map-compass{
+    opacity:.82;
+}
+
+.map-compass circle{
+    fill:rgba(231,213,162,.78);
+    stroke:#4a3520;
+    stroke-width:5;
+}
+
+.map-compass text{
+    font-family:Georgia,"Times New Roman",serif;
+    font-weight:bold;
+    fill:#392817;
+}
+
+.map-compass path{
+    fill:#392817;
+}
+
+.map-attribution{
+    position:absolute;
+    right:14px;
+    bottom:10px;
+    z-index:8;
+    padding:5px 8px;
+    font:11px Georgia,"Times New Roman",serif;
+    color:#d9c38e;
+    background:rgba(18,13,8,.78);
+    border:1px solid rgba(182,143,76,.55);
+    pointer-events:none;
+}
+
+.map-attribution a{
+    color:#e3ca8b;
+    text-decoration:none;
+    pointer-events:auto;
+}
+
+/* ---------- DYNAMIC WORLD EVENTS ---------- */
+
+.dynamic-event{
+    pointer-events:none;
+}
+
+.dynamic-label{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:18px;
+    font-weight:bold;
+    fill:#f2dda4;
+    paint-order:stroke;
+    stroke:#1a1209;
+    stroke-width:7px;
+    letter-spacing:1px;
+}
+
+.dynamic-subtle{
+    font-size:13px;
+    fill:#e1c987;
+    paint-order:stroke;
+    stroke:#17100a;
+    stroke-width:5px;
+}
+
+.dynamic-dragon{
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.75));
+}
+
+.dynamic-dragon-body{
+    fill:#3d3026;
+    stroke:#17110c;
+    stroke-width:4;
+}
+
+.dynamic-dragon-wing{
+    fill:#594536;
+    stroke:#17110c;
+    stroke-width:4;
+}
+
+.dynamic-wolf{
+    fill:#443b30;
+    stroke:#17110c;
+    stroke-width:3;
+}
+
+.dynamic-draugr-ring{
+    fill:none;
+    stroke:#b99a57;
+    stroke-width:6;
+    opacity:.65;
+}
+
+.dynamic-blizzard{
+    fill:#e8eef0;
+    opacity:.12;
+}
+
+.dynamic-snow{
+    fill:#f2f0df;
+    opacity:.78;
+}
+
+@keyframes draugrPulse{
+    0%,100%{opacity:.25;transform:scale(.82)}
+    50%{opacity:.9;transform:scale(1.12)}
+}
+
+@keyframes eventGlow{
+    0%,100%{opacity:.45}
+    50%{opacity:1}
+}
+
+.dynamic-draugr-pulse{
+    transform-box:fill-box;
+    transform-origin:center;
+    animation:draugrPulse 2.4s ease-in-out infinite;
+}
+
+.dynamic-event-glow{
+    animation:eventGlow 1.8s ease-in-out infinite;
+}
+</style>
+
 </head>
 
 <body>
@@ -3379,6 +3620,71 @@ h1,h2,h3{
                 preserveAspectRatio="none"
                 aria-label="Interactive Skyrim map"
             >
+                
+<g id="dynamicWorldLayer" class="dynamic-event">
+    <g id="dynamicBlizzard"></g>
+    <g id="dynamicDragon"></g>
+    <g id="dynamicWolves"></g>
+    <g id="dynamicDraugr"></g>
+</g>
+
+<g id="mapCartographyLayer" class="map-cartography">
+    <!-- Hold names: the nine canonical Skyrim Holds -->
+    <text class="hold-label" x="650" y="430">HAAFINGAR</text>
+    <text class="hold-label" x="930" y="620">HJAALMARCH</text>
+    <text class="hold-label" x="1510" y="390">THE PALE</text>
+    <text class="hold-label" x="1950" y="360">WINTERHOLD</text>
+    <text class="hold-label" x="2110" y="700">EASTMARCH</text>
+    <text class="hold-label" x="2260" y="1160">THE RIFT</text>
+    <text class="hold-label" x="1250" y="900">WHITERUN HOLD</text>
+    <text class="hold-label" x="500" y="1250">THE REACH</text>
+    <text class="hold-label" x="850" y="1160">FALKREATH HOLD</text>
+
+    <!-- Major road network, deliberately kept understated so geography remains visible -->
+    <path class="map-road" d="M1360 660 C1210 600 1060 520 850 430 C820 410 790 390 760 365"/>
+    <path class="map-road" d="M1360 660 C1500 570 1680 500 1900 430 C2010 400 2110 445 2198 490"/>
+    <path class="map-road" d="M1360 660 C1510 760 1690 860 1910 950 C2100 1020 2280 1030 2449 990"/>
+    <path class="map-road" d="M1360 660 C1280 760 1190 850 1088 1000"/>
+    <path class="map-road" d="M1360 660 C1220 770 1030 920 760 1030 C520 1070 300 1060 157 1080"/>
+    <path class="map-road" d="M1360 660 C1450 520 1480 410 1486 305"/>
+    <path class="map-road" d="M1486 305 C1330 350 1160 430 984 526"/>
+    <path class="map-road" d="M984 526 C930 430 870 390 826 361"/>
+    <path class="map-road" d="M2198 490 C2240 610 2290 760 2449 990"/>
+    <path class="map-road" d="M2449 990 C2180 1080 1910 1140 1650 1190 C1420 1210 1220 1110 1088 1000"/>
+
+    <!-- Secondary paths -->
+    <path class="map-road-minor" d="M826 361 C980 300 1190 290 1486 305"/>
+    <path class="map-road-minor" d="M1088 1000 C1200 1090 1310 1190 1470 1370"/>
+    <path class="map-road-minor" d="M2198 490 C2070 600 1970 760 1810 820"/>
+    <path class="map-road-minor" d="M157 1080 C420 930 600 760 790 1180"/>
+
+    <!-- Major rivers -->
+    <path class="map-river" d="M1130 470 C1210 520 1270 590 1360 660 C1510 740 1660 820 1820 850 C2020 900 2210 900 2449 990"/>
+    <path class="map-river" d="M900 470 C860 520 850 600 900 680 C950 760 1050 820 1088 1000"/>
+    <path class="map-river-thin" d="M980 526 C920 560 840 590 760 620 C670 660 590 720 520 790"/>
+    <path class="map-river-thin" d="M2198 490 C2110 560 2070 640 2040 720"/>
+
+    <!-- Simplified relief lines emphasizing the major mountain systems -->
+    <path class="map-mountain" d="M80 760 C240 650 360 560 520 500 C650 450 760 470 850 540"/>
+    <path class="map-mountain" d="M1450 600 C1550 520 1660 430 1800 350 C1910 290 2010 250 2110 220"/>
+    <path class="map-mountain" d="M1650 1030 C1780 930 1900 850 2050 760 C2140 700 2200 620 2240 520"/>
+    <path class="map-mountain" d="M600 1120 C760 1050 900 1030 1040 1060 C1160 1090 1270 1150 1390 1270"/>
+    <path class="map-mountain" d="M1820 1180 C1940 1100 2070 1080 2210 1120 C2320 1150 2420 1200 2500 1290"/>
+
+    <!-- Compass rose -->
+    <g class="map-compass" transform="translate(2860 1640)">
+        <circle r="78"></circle>
+        <path d="M0-62 L13-12 L0-20 L-13-12 Z"></path>
+        <path d="M62 0 L12 13 L20 0 L12-13 Z" transform="rotate(90)"></path>
+        <path d="M0 62 L-13 12 L0 20 L13 12 Z"></path>
+        <path d="M-62 0 L-12-13 L-20 0 L-12 13 Z"></path>
+        <text x="-7" y="-85">N</text>
+        <text x="76" y="6">E</text>
+        <text x="-7" y="101">S</text>
+        <text x="-86" y="6">W</text>
+    </g>
+</g>
+
                 <g id="cityLayer">
                     <g class="city" data-city="Whiterun" tabindex="0" role="button" aria-label="Whiterun weather">
                         <circle class="city-hit" cx="1360" cy="660" r="105"></circle>
@@ -5033,6 +5339,143 @@ if(document.readyState==="loading"){
 }else{
     createNordicShrines();
 }
+</script>
+
+
+<script id="dynamic-world-events-script">
+/* ============================================================
+   DYNAMIC SKYRIM WORLD EVENTS
+   Continuous visual events layered over the existing map.
+============================================================ */
+(function(){
+    "use strict";
+
+    const NS="http://www.w3.org/2000/svg";
+    const layer=document.getElementById("dynamicWorldLayer");
+    if(!layer) return;
+
+    const dragonLayer=document.getElementById("dynamicDragon");
+    const wolfLayer=document.getElementById("dynamicWolves");
+    const blizzardLayer=document.getElementById("dynamicBlizzard");
+    const draugrLayer=document.getElementById("dynamicDraugr");
+
+    function svg(tag,attrs,parent){
+        const el=document.createElementNS(NS,tag);
+        Object.keys(attrs||{}).forEach(k=>el.setAttribute(k,attrs[k]));
+        if(parent) parent.appendChild(el);
+        return el;
+    }
+
+    function label(parent,x,y,title,sub){
+        const g=svg("g",{transform:"translate("+x+" "+y+")"},parent);
+        svg("text",{x:0,y:0,class:"dynamic-label","text-anchor":"middle"},g).textContent=title;
+        if(sub){
+            svg("text",{x:0,y:23,class:"dynamic-subtle","text-anchor":"middle"},g).textContent=sub;
+        }
+        return g;
+    }
+
+    /* Dragon: loops over the Whiterun plains. */
+    const dragon=svg("g",{class:"dynamic-dragon"},dragonLayer);
+    svg("ellipse",{cx:0,cy:0,rx:22,ry:9,class:"dynamic-dragon-body"},dragon);
+    svg("path",{d:"M-10-4 L-58-38 L-35-4 L-58 26 L-8 7 Z",class:"dynamic-dragon-wing"},dragon);
+    svg("path",{d:"M10-4 L58-38 L35-4 L58 26 L8 7 Z",class:"dynamic-dragon-wing"},dragon);
+    svg("circle",{cx:26,cy:-2,r:5,fill:"#a95a3c"},dragon);
+    const dragonLabel=label(dragonLayer,0,0,"DRAGON SIGHTING","Whiterun plains");
+
+    /* Wolf pack: three moving silhouettes in Falkreath woodland. */
+    const wolves=[];
+    for(let i=0;i<3;i++){
+        const w=svg("circle",{cx:0,cy:0,r:i===0?10:7,class:"dynamic-wolf"},wolfLayer);
+        wolves.push(w);
+    }
+    const wolfLabel=label(wolfLayer,0,0,"WOLF PACK","Falkreath woodland");
+
+    /* Draugr activity: animated Nordic ruin marker near the Reach. */
+    const dg=svg("g",{transform:"translate(690 1110)"},draugrLayer);
+    const ring1=svg("circle",{cx:0,cy:0,r:30,class:"dynamic-draugr-ring dynamic-draugr-pulse"},dg);
+    const ring2=svg("circle",{cx:0,cy:0,r:16,class:"dynamic-draugr-ring dynamic-event-glow"},dg);
+    svg("path",{d:"M0-10 L7-3 L5 8 L0 12 L-5 8 L-7-3 Z",fill:"#b99a57",stroke:"#24190d","stroke-width":"3"},dg);
+    const draugrLabel=label(draugrLayer,690,1050,"DRAUGR ACTIVITY","Ancient barrow");
+
+    /* Blizzard front moving across the northern holds. */
+    const storm=svg("g",{},blizzardLayer);
+    svg("ellipse",{cx:0,cy:0,rx:250,ry:105,class:"dynamic-blizzard"},storm);
+    const flakes=[];
+    for(let i=0;i<18;i++){
+        flakes.push(svg("circle",{cx:(i*67)%430-215,cy:(i*31)%150-75,r:(i%3)+2,class:"dynamic-snow"},storm));
+    }
+    const stormLabel=label(blizzardLayer,0,0,"BLIZZARD FRONT","Northern Skyrim");
+
+    const start=performance.now();
+
+    function moveLabel(g,x,y){
+        if(g) g.setAttribute("transform","translate("+x+" "+y+")");
+    }
+
+    function frame(now){
+        const t=(now-start)/1000;
+
+        /* Dragon orbit around the Whiterun region. */
+        const da=t*0.24;
+        const dx=1360+Math.cos(da)*185;
+        const dy=610+Math.sin(da)*78;
+        const aheadX=1360+Math.cos(da+0.03)*185;
+        const aheadY=610+Math.sin(da+0.03)*78;
+        const angle=Math.atan2(aheadY-dy,aheadX-dx)*180/Math.PI;
+        dragon.setAttribute("transform","translate("+dx+" "+dy+") rotate("+angle+")");
+        moveLabel(dragonLabel,dx,dy-45);
+
+        /* Wolves follow a gentle back-and-forth path. */
+        const wp=(Math.sin(t*0.18)+1)/2;
+        const wx=820+(wp*360);
+        const wy=1060+(Math.sin(wp*Math.PI)*125);
+        wolves.forEach((w,i)=>{
+            w.setAttribute("cx",wx-i*18);
+            w.setAttribute("cy",wy+(i-1)*13);
+        });
+        moveLabel(wolfLabel,wx,wy-35);
+
+        /* Blizzard drifts from west to east across the north. */
+        const bp=(t*0.018)%1.25;
+        const bx=850+bp*1450;
+        const by=385+Math.sin(t*0.22)*38;
+        storm.setAttribute("transform","translate("+bx+" "+by+")");
+        moveLabel(stormLabel,bx,by-125);
+
+        /* Snow travels diagonally through the storm. */
+        flakes.forEach((f,i)=>{
+            const x=((i*67 + t*55) % 430)-215;
+            const y=((i*31 + t*38) % 150)-75;
+            f.setAttribute("cx",x);
+            f.setAttribute("cy",y);
+        });
+
+        requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+
+    /* Draugr activity pulses independently, so it feels like a location event. */
+    setInterval(function(){
+        const pulse=document.createElementNS(NS,"circle");
+        pulse.setAttribute("cx","690");
+        pulse.setAttribute("cy","1110");
+        pulse.setAttribute("r","18");
+        pulse.setAttribute("fill","none");
+        pulse.setAttribute("stroke","#d3b45f");
+        pulse.setAttribute("stroke-width","5");
+        pulse.setAttribute("opacity",".9");
+        pulse.setAttribute("class","dynamic-event-glow");
+        draugrLayer.appendChild(pulse);
+        setTimeout(function(){pulse.remove();},2200);
+
+        if(typeof addEvent==="function"){
+            addEvent("Draugr activity reported near an ancient barrow in the Reach.");
+        }
+    },30000);
+
+})();
 </script>
 
 </body>
