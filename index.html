@@ -5521,7 +5521,7 @@ if(document.readyState==="loading"){
         const t=(now-start)/1000;
 
         /* Dragon orbit around the Whiterun region. */
-        const da=t*0.24;
+        const da=t*0.055;
         const dx=1360+Math.cos(da)*185;
         const dy=610+Math.sin(da)*78;
         const aheadX=1360+Math.cos(da+0.03)*185;
@@ -5531,7 +5531,7 @@ if(document.readyState==="loading"){
         moveLabel(dragonLabel,dx,dy-45);
 
         /* Wolves follow a gentle back-and-forth path. */
-        const wp=(Math.sin(t*0.18)+1)/2;
+        const wp=(Math.sin(t*0.045)+1)/2;
         const wx=820+(wp*360);
         const wy=1060+(Math.sin(wp*Math.PI)*125);
         wolves.forEach((w,i)=>{
@@ -5541,7 +5541,7 @@ if(document.readyState==="loading"){
         moveLabel(wolfLabel,wx,wy-35);
 
         /* Blizzard drifts from west to east across the north. */
-        const bp=(t*0.018)%1.25;
+        const bp=(t*0.0045)%1.25;
         const bx=850+bp*1450;
         const by=385+Math.sin(t*0.22)*38;
         storm.setAttribute("transform","translate("+bx+" "+by+")");
@@ -5549,8 +5549,8 @@ if(document.readyState==="loading"){
 
         /* Snow travels diagonally through the storm. */
         flakes.forEach((f,i)=>{
-            const x=((i*67 + t*55) % 430)-215;
-            const y=((i*31 + t*38) % 150)-75;
+            const x=((i*67 + t*18) % 430)-215;
+            const y=((i*31 + t*14) % 150)-75;
             f.setAttribute("cx",x);
             f.setAttribute("cy",y);
         });
