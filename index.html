@@ -3629,7 +3629,7 @@ h1,h2,h3{
 </g>
 
 <g id="mapCartographyLayer" class="map-cartography">
-    <!-- Hold names: the nine canonical Skyrim Holds -->
+    <!-- Hold names only. The underlying fan-made map provides the actual geography. -->
     <text class="hold-label" x="650" y="430">HAAFINGAR</text>
     <text class="hold-label" x="930" y="620">HJAALMARCH</text>
     <text class="hold-label" x="1510" y="390">THE PALE</text>
@@ -3640,38 +3640,7 @@ h1,h2,h3{
     <text class="hold-label" x="500" y="1250">THE REACH</text>
     <text class="hold-label" x="850" y="1160">FALKREATH HOLD</text>
 
-    <!-- Major road network, deliberately kept understated so geography remains visible -->
-    <path class="map-road" d="M1360 660 C1210 600 1060 520 850 430 C820 410 790 390 760 365"/>
-    <path class="map-road" d="M1360 660 C1500 570 1680 500 1900 430 C2010 400 2110 445 2198 490"/>
-    <path class="map-road" d="M1360 660 C1510 760 1690 860 1910 950 C2100 1020 2280 1030 2449 990"/>
-    <path class="map-road" d="M1360 660 C1280 760 1190 850 1088 1000"/>
-    <path class="map-road" d="M1360 660 C1220 770 1030 920 760 1030 C520 1070 300 1060 157 1080"/>
-    <path class="map-road" d="M1360 660 C1450 520 1480 410 1486 305"/>
-    <path class="map-road" d="M1486 305 C1330 350 1160 430 984 526"/>
-    <path class="map-road" d="M984 526 C930 430 870 390 826 361"/>
-    <path class="map-road" d="M2198 490 C2240 610 2290 760 2449 990"/>
-    <path class="map-road" d="M2449 990 C2180 1080 1910 1140 1650 1190 C1420 1210 1220 1110 1088 1000"/>
-
-    <!-- Secondary paths -->
-    <path class="map-road-minor" d="M826 361 C980 300 1190 290 1486 305"/>
-    <path class="map-road-minor" d="M1088 1000 C1200 1090 1310 1190 1470 1370"/>
-    <path class="map-road-minor" d="M2198 490 C2070 600 1970 760 1810 820"/>
-    <path class="map-road-minor" d="M157 1080 C420 930 600 760 790 1180"/>
-
-    <!-- Major rivers -->
-    <path class="map-river" d="M1130 470 C1210 520 1270 590 1360 660 C1510 740 1660 820 1820 850 C2020 900 2210 900 2449 990"/>
-    <path class="map-river" d="M900 470 C860 520 850 600 900 680 C950 760 1050 820 1088 1000"/>
-    <path class="map-river-thin" d="M980 526 C920 560 840 590 760 620 C670 660 590 720 520 790"/>
-    <path class="map-river-thin" d="M2198 490 C2110 560 2070 640 2040 720"/>
-
-    <!-- Simplified relief lines emphasizing the major mountain systems -->
-    <path class="map-mountain" d="M80 760 C240 650 360 560 520 500 C650 450 760 470 850 540"/>
-    <path class="map-mountain" d="M1450 600 C1550 520 1660 430 1800 350 C1910 290 2010 250 2110 220"/>
-    <path class="map-mountain" d="M1650 1030 C1780 930 1900 850 2050 760 C2140 700 2200 620 2240 520"/>
-    <path class="map-mountain" d="M600 1120 C760 1050 900 1030 1040 1060 C1160 1090 1270 1150 1390 1270"/>
-    <path class="map-mountain" d="M1820 1180 C1940 1100 2070 1080 2210 1120 C2320 1150 2420 1200 2500 1290"/>
-
-    <!-- Compass rose -->
+    <!-- Simple compass; no invented roads, rivers, or mountain lines. -->
     <g class="map-compass" transform="translate(2860 1640)">
         <circle r="78"></circle>
         <path d="M0-62 L13-12 L0-20 L-13-12 Z"></path>
@@ -3683,6 +3652,7 @@ h1,h2,h3{
         <text x="-7" y="101">S</text>
         <text x="-86" y="6">W</text>
     </g>
+</g>
 </g>
 
                 <g id="cityLayer">
@@ -5430,7 +5400,7 @@ if(document.readyState==="loading"){
 
         if(s.type==="rain"){
             for(let i=0;i<20;i++){
-                el("line",{x1:(i*29)%320-160,y1:(i*17)%190-95,x2:0,y2:0,class:"lore-weather-rain"},g);
+                el("ellipse",{cx:(i*29)%320-160,cy:(i*17)%190-95,rx:2.5,ry:7,class:"lore-weather-rain"},g);
             }
         }else if(s.type==="snow"||s.type==="blizzard"){
             for(let i=0;i<(s.type==="blizzard"?34:18);i++){
@@ -5460,8 +5430,7 @@ if(document.readyState==="loading"){
             item.g.querySelectorAll(".lore-weather-rain").forEach((p,i)=>{
                 const x=((i*29+t*24)%320)-160;
                 const y=((i*17+t*36)%190)-95;
-                p.setAttribute("x1",x); p.setAttribute("y1",y);
-                p.setAttribute("x2",x-8); p.setAttribute("y2",y+28);
+                p.setAttribute("cx",x); p.setAttribute("cy",y);
             });
             item.g.querySelectorAll(".lore-weather-snow").forEach((p,i)=>{
                 p.setAttribute("cx",(((i*41)+t*18)%390)-195);
